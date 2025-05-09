@@ -77,11 +77,6 @@
 * **알람 관련**: `alarm-single`, `alarm-multiple`, `alarm-zero`, `alarm-negative`
 * **스케줄러 관련**: `priority-change`, `priority-donate-nest`, `mlfqs-load-1`, `mlfqs-fair-2`
 
----
-
-## 참여자 코멘트
-
-> 운영체제를 겉핥기만 하다가, 이 프로젝트를 통해 정말 '속을 뜯어보는' 경험을 했습니다. 스레드가 잠드는 것 하나도 단순히 `sleep()`을 쓰는 게 아니라 스케줄링과 인터럽트, 동기화가 모두 얽혀 있다는 걸 처음 알게 되었어요. 앞으로의 프로젝트도 기대돼요!
 
 ---
 
