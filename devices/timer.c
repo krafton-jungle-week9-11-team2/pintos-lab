@@ -29,6 +29,9 @@ static bool too_many_loops (unsigned loops);
 static void busy_wait (int64_t loops);
 static void real_time_sleep (int64_t num, int32_t denom);
 
+static struct list sleep_list; // Alarm clock 개선
+
+
 /* Sets up the 8254 Programmable Interval Timer (PIT) to
    interrupt PIT_FREQ times per second, and registers the
    corresponding interrupt. */
@@ -124,8 +127,28 @@ timer_print_stats (void) {
 /* Timer interrupt handler. */
 static void
 timer_interrupt (struct intr_frame *args UNUSED) {
+	ticks++; 
+	// thread_tick ();
+	// ↑ 이건 단순히 ticks 값을 1 증가, thread_tick()로 타임 슬라이스 관리 도와주는 수준임.
+
+	/* Code to add:
+	  1. Check sleep list and the global tick.
+	  2. Find any threads that are sleeping and wake them up.
+	  3. Move them to the ready list if necessary.
+	  4. Update the global tick.
+	*/
 	ticks++;
-	thread_tick ();
+
+	while (!list_empty(&sleep_list)) {
+		struct thread *t = list_entry(list_front(&sleep_list), struct thread, elem);
+
+		if (t->wakeup_tick <= ticks) {
+			list_pop_front(&sleep_list);// 리스트에서 제거
+			thread_unblock(t);  // READY 상태로 전환
+		} else {
+			break; // wakeup_tick이 미래니까 나머지는 볼 필요 없음
+		}
+	}
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

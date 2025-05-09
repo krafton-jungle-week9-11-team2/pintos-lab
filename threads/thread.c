@@ -538,6 +538,21 @@ do_schedule(int status) {
 	schedule ();
 }
 
+// static void schedule_v2(void) {
+// 	struct thread *curr = running_thread ();
+// 	struct thread *next = next_thread_to_run ();
+// 	struct thread *prev = NULL;
+
+// 	ASSERT(intr_get_level() == INTR_OFF);
+// 	ASSERT (curr->status != THREAD_RUNNING);
+// 	ASSERT (is_thread (next));
+
+// 	if(curr!= next)
+// 		prev = switch_threads(curr,next);
+	
+// 	schedule_tail(prev);
+// }
+
 static void
 schedule (void) {
 	struct thread *curr = running_thread ();
