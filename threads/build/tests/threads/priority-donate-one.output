@@ -1,0 +1,33 @@
+Kernel command line: -q run priority-donate-one
+0 ~ 9fc00 1
+100000 ~ 13e0000 1
+Pintos booting with: 
+	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
+	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
+Calibrating timer...  39,168,000 loops/s.
+Boot complete.
+Executing 'priority-donate-one':
+(priority-donate-one) begin
+(priority-donate-one) This thread should have priority 32.  Actual priority: 31.
+(priority-donate-one) This thread should have priority 33.  Actual priority: 31.
+(priority-donate-one) acquire2, acquire1 must already have finished, in that order.
+(priority-donate-one) This should be the last line before finishing this test.
+(priority-donate-one) end
+Execution of 'priority-donate-one' complete.
+(priority-donate-one) acquire1: got the lock
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=800421325e
+ cr2=0000000000204400 error=               0
+rax 0000000000204400 rbx 0000000000000000 rcx 00000080040b8000 rdx 0000000000000001
+rsp 0000008004234ef8 rbp 0000008004234f00 rsi 000000000000800f rdi 0000000000204400
+rip 000000800421325e r8 0000008004234ebc  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000000 r12 0000000000000000 r13 0000000000000000 r14 0000000000000000
+r15 0000000000000000 rflags 00000006
+es: 0010 ds: 0010 cs: 0008 ss: 0010
+Kernel PANIC at ../../threads/interrupt.c:361 in intr_handler(): Unexpected interrupt
+Call stack: 0x80042131a2 0x8004208764 0x8004208b16 0x80042139b5 0x8004213a5d 0x800420989c 0x8004209d5d 0x8004217797 0x8004207187.
+The `backtrace' program can make call stacks useful.
+Read "Backtraces" in the "Debugging Tools" chapter
+of the Pintos documentation for more information.
+Timer: 33 ticks
+Thread: 0 idle ticks, 33 kernel ticks, 0 user ticks
+Console: 1
