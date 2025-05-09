@@ -54,6 +54,11 @@ static unsigned thread_ticks;   /* # of timer ticks since last yield. */
    Controlled by kernel command-line option "-o mlfqs". */
 bool thread_mlfqs;
 
+/* Alarm clock 과제 */
+static struct list sleep_list;
+static int64_t next_tick_to_awake;
+
+
 static void kernel_thread (thread_func *, void *aux);
 
 static void idle (void *aux UNUSED);
@@ -92,8 +97,33 @@ static uint64_t gdt[3] = { 0, 0x00af9a000000ffff, 0x00cf92000000ffff };
 
    It is not safe to call thread_current() until this function
    finishes. */
+void thread_init(void) {
+	ASSERT (intr_get_level () == INTR_OFF);
+
+	/* Reload the temporal gdt for the kernel
+	 * This gdt does not include the user context.
+	 * The kernel will rebuild the gdt with user context, in gdt_init (). */
+	struct desc_ptr gdt_ds = {
+		.size = sizeof (gdt) - 1,
+		.address = (uint64_t) gdt
+	};
+	lgdt (&gdt_ds);
+
+	/* Init the globla thread context */
+	lock_init (&tid_lock);
+	list_init (&ready_list);
+	list_init (&destruction_req);
+	list_init(&sleep_list); // Alarm clock 과제
+
+	/* Set up a thread structure for the running thread. */
+	initial_thread = running_thread ();
+	init_thread (initial_thread, "main", PRI_DEFAULT);
+	initial_thread->status = THREAD_RUNNING;
+	initial_thread->tid = allocate_tid ();
+}
+
 void
-thread_init (void) {
+thread_init_orig (void) {
 	ASSERT (intr_get_level () == INTR_OFF);
 
 	/* Reload the temporal gdt for the kernel
@@ -131,6 +161,27 @@ thread_start (void) {
 
 	/* Wait for the idle thread to initialize idle_thread. */
 	sema_down (&idle_started);
+}
+
+/**
+ * thread_sleep: Alarm clock 과제. 
+ *   Thread를 sleep queue에 삽입하고 blocked 상태로 만들어 대기.
+ * 
+ * @param ticks: 해당 스레드의 틱
+ */
+void thread_sleep(int64_t ticks){
+	struct thread* this;
+	this = thread_current();
+
+	if(this == idle_thread){
+        ASSERT(0);
+	}else{
+		enum intr_level old_level = intr_disable();  // 인터럽트 일시중지
+		update_next_tick_to_awake(this->wakeup_tick = ticks); // Awake ticks 업데이트
+		list_push_back(&sleep_list, &this->elem); // sleep_list에 넣음
+		thread_block(); // 해당 스레드를 블록
+		intr_set_level(old_level); // 인터럽트 재개
+	}
 }
 
 /* Called by the timer interrupt handler at each timer tick.
@@ -243,6 +294,43 @@ thread_unblock (struct thread *t) {
 	list_push_back (&ready_list, &t->elem);
 	t->status = THREAD_READY;
 	intr_set_level (old_level);
+}
+
+/** 
+ * thread_awake - Alarm Clock 과제. wakeup_tick값이 인자로 받은 ticks보다 크거나 같은 스레드를 깨움.
+ *   현재 대기 중인 스레드들의 wakeup_tick 중 최솟값을 next_tick_to_awake 전역변수에 저장.
+ */
+void thread_awake(int64_t wakeup_tick){
+	next_tick_to_awake = INT64_MAX;
+	struct list_elem* sleeping = list_begin(&sleep_list);  // 자고 있는 스레드 전체를 가져옴.
+
+	while(sleeping != list_end(&sleep_list)){ // 리스트 끝까지
+		struct thread* thr = list_entry(sleeping, struct thread, elem);
+
+		if(thr->wakeup_tick <= wakeup_tick){ // 깨울 때면
+			sleeping = list_remove(&thr->elem); // 해당 스레드를 삭제
+			thread_unblock(thr); // 해당 스레드의 블록 해제
+		}else{ // 아니면
+			sleeping = list_next(sleeping); // 다음 자는 스레드로 넘어감
+			update_next_tick_to_awake(thr->wakeup_tick); // wakeup_tick를 업데이트
+		}
+	}
+}
+
+/** 
+ * update_next_tick_to_awake - Alarm Clock 과제.
+ *   전역변수인 next_tick_to_awake를, ticks와 비교하여, 둘 중 더 작은 값으로 업데이트.
+*/
+void update_next_tick_to_awake(int64_t ticks) {
+    next_tick_to_awake = (next_tick_to_awake > ticks) ? ticks : next_tick_to_awake; // 최솟값 가진 녀석
+}
+
+/** 
+ * get_next_tick_to_awake - Alarm Clock 과제.
+ *   전역변수인 next_tick_to_awake를 리턴.
+*/
+int64_t get_next_tick_to_awake(void) {
+    return next_tick_to_awake;
 }
 
 /* Returns the name of the running thread. */

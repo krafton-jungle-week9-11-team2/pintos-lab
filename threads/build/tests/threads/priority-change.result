@@ -1,11 +1,19 @@
 FAIL
-Kernel panic in run: PANIC at ../../threads/interrupt.c:361 in intr_handler(): Unexpected interrupt
-Call stack: 0x8004213242 0x8004208767 0x8004208b19 0x80042086fb 0x8004208b19 0x80042069da 0x80042060df
-Translation of call stack:
-0x0000008004213242: debug_panic (lib/kernel/debug.c:32)
-0x0000008004208767: intr_handler (threads/interrupt.c:365)
-0x0000008004208b19: intr_entry (threads/intr-stubs.o:?)
-0x00000080042086fb: intr_handler (threads/interrupt.c:352)
-0x0000008004208b19: intr_entry (threads/intr-stubs.o:?)
-0x00000080042069da: thread_start (threads/thread.c:133)
-0x00000080042060df: main (threads/init.c:106)
+Test output failed to match any acceptable form.
+
+Acceptable output:
+  (priority-change) begin
+  (priority-change) Creating a high-priority thread 2.
+  (priority-change) Thread 2 now lowering priority.
+  (priority-change) Thread 2 should have just lowered its priority.
+  (priority-change) Thread 2 exiting.
+  (priority-change) Thread 2 should have just exited.
+  (priority-change) end
+Differences in `diff -u' format:
+  (priority-change) begin
+  (priority-change) Creating a high-priority thread 2.
+- (priority-change) Thread 2 now lowering priority.
+  (priority-change) Thread 2 should have just lowered its priority.
+- (priority-change) Thread 2 exiting.
+  (priority-change) Thread 2 should have just exited.
+  (priority-change) end
