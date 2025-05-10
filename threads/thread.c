@@ -383,12 +383,11 @@ void thread_check_sleep_list(){
 /* Sets the current thread's priority to NEW_PRIORITY. */
 // 현재 스레드의 우선순위가 변경되어 더 이상 가장 높은 우선순위가 아니라면, CPU를 양보시켜야 함.
 void
-thread_set_priority (int new_priority) 
-{
+thread_set_priority (int new_priority) {
   struct thread* front_ready_thread = list_entry(list_begin(&ready_list), struct thread, elem);
 
   thread_current ()->priority = new_priority;
-  
+
   if (front_ready_thread->priority > new_priority)
     thread_yield();
 }
