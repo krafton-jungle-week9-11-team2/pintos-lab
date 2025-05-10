@@ -138,20 +138,34 @@ thread_start (void) {
 void
 thread_tick (void) {
 	struct thread *t = thread_current ();
-
+  // cpu를 쓰고 있는 스레드를 변수 t에 저장 
 	/* Update statistics. */
 	if (t == idle_thread)
+	//만약 지금 도는 스레드가 idle thread라면, → "쉬는 중"
+	//dle thread는 아무 일도 안 하고 “누구 실행시킬 애 없나~” 기다리는 애야.
 		idle_ticks++;
+		//쉬는 시간(idle_ticks)을 1 증가시켜!
 #ifdef USERPROG
+//만약 이 스레드가 유저 프로그램이라면 user_ticks++
 	else if (t->pml4 != NULL)
 		user_ticks++;
 #endif
 	else
+	// 그게 아니라면 커널 스레드니까 커널에 ++ 
 		kernel_ticks++;
 
 	/* Enforce preemption. */
 	if (++thread_ticks >= TIME_SLICE)
+	//thread_ticks는 이 스레드가 연속으로 몇 틱 동안 실행됐는지 세는 변수
+	//++thread_ticks → 한 틱 지났으니 숫자 1 올려.
 		intr_yield_on_return ();
+		//지금 바로 context switch는 안 하고,
+		// 인터럽트 핸들러가 끝나고 돌아갈 때 CPU 양보하겠다는 뜻이야.
+		//, 지금은 인터럽트 핸들러 안이니까
+		// → 직접 thread_yield() 해버리면 위험할 수 있음! -> 현재 스레드 상태 저장도 안햇는데 문맥 전환 일어나면 안됨.
+		// ➡ 그래서 “돌아가면서 자연스럽게 양보하자~” 라고 하는 거야.
+
+
 }
 
 /* Prints thread statistics. */
@@ -254,6 +268,7 @@ thread_name (void) {
 /* Returns the running thread.
    This is running_thread() plus a couple of sanity checks.
    See the big comment at the top of thread.h for details. */
+	//  현재 실행 중인 스레드(struct thread 구조체)를 반환하는 함수
 struct thread *
 thread_current (void) {
 	struct thread *t = running_thread ();
@@ -277,10 +292,11 @@ thread_tid (void) {
 
 /* Deschedules the current thread and destroys it.  Never
    returns to the caller. */
+ // 현재 실행 중인 스레드가 스스로 종료할 때 호출되는 함수
 void
 thread_exit (void) {
 	ASSERT (!intr_context ());
-
+//이 함수는 인터럽트 핸들러 안에서는 호출되면 안 됨!!
 #ifdef USERPROG
 	process_exit ();
 #endif
@@ -288,23 +304,49 @@ thread_exit (void) {
 	/* Just set our status to dying and schedule another process.
 	   We will be destroyed during the call to schedule_tail(). */
 	intr_disable ();
+	//문맥 전환 전에 항상 인터럽트 잠깐 끔
+
+
 	do_schedule (THREAD_DYING);
+	//지금 스레드 상태를 THREAD_DYING 으로 설정하고
+// 스케줄러 불러서 다음 스레드로 context switch 시도
 	NOT_REACHED ();
+	// 1. 현재 스레드가 자기 죽을 차례라고 선언
+// 2. 사용자 프로세스도 종료해주고
+// 3. 인터럽트 끔
+// 4. 상태를 THREAD_DYING으로 설정
+// 5. 스케줄러 호출 → 다음 스레드로 문맥 전환
+// 6. 이후 메모리 정리는 다음 스레드가 해줌!
+
 }
 
 /* Yields the CPU.  The current thread is not put to sleep and
    may be scheduled again immediately at the scheduler's whim. */
+	 //스스로 CPU 양보하겠다고 요청하는 스레드 함수
 void
 thread_yield (void) {
 	struct thread *curr = thread_current ();
+	//현재 실행 중인 스레드를 curr에 저장함
+	//thread_current()는 지금 CPU에서 돌고 있는 스레드 정보를 반환해
+// 즉, “나 자신”을 curr로 참조해둔 거야
 	enum intr_level old_level;
-
+	//  인터럽트 상태를 저장할 변수 선언
 	ASSERT (!intr_context ());
-
+// 디버깅용 체크!// "지금 인터럽트 안에서 이 함수 부르면 안 됨.ㅣ -> 인터럽트 핸들러 안에서 문맥 전환 안되잖아 그거 막는거임.
 	old_level = intr_disable ();
+	//old_level = intr_disable();
+	// 스레드를 ready_list에 넣는 동안 다른 인터럽트가 끼어들면 꼬일 수 있어. 그래서 잠깐 끔.
 	if (curr != idle_thread)
+	//idle_thread(할 일 없는 대기용 스레드)는 ready_list에 넣지 않음
 		list_push_back (&ready_list, &curr->elem);
+		//현재 스레드를 ready_list에 다시 넣음 (큐 뒤에 추가)
+
+	// 문맥 전환을 하는 함수 -> 여기서 다른 스레드로 교체 가능 
 	do_schedule (THREAD_READY);
+	//THREAD_READY => 나 CPU 양보할게. 다시 ready 상태로 가서 대기할게
+	//THREAD_BLOCKED => 나는 I/O 기다리거나, 조건 기다려야 돼. 실행 X
+	//THREAD_DYING	 => 나 종료할게. 곧 없어짐
+
 	intr_set_level (old_level);
 }
 
@@ -462,6 +504,8 @@ do_iret (struct intr_frame *tf) {
    It's not safe to call printf() until the thread switch is
    complete.  In practice that means that printf()s should be
    added at the end of the function. */
+	 //현재 실행 중인 스레드의 상태(레지스터, 스택, RIP 등)를 저장하고,
+// 다음 스레드의 상태를 복원해서 그 스레드를 실행시키는 것
 static void
 thread_launch (struct thread *th) {
 	uint64_t tf_cur = (uint64_t) &running_thread ()->tf;
@@ -527,30 +571,78 @@ thread_launch (struct thread *th) {
  * It's not safe to call printf() in the schedule(). */
 static void
 do_schedule(int status) {
+	// 문맥전환 중에 인터럽트 끄기 
 	ASSERT (intr_get_level () == INTR_OFF);
+	
+	// 지금 CPU에서 돌고 있는 스레드는 무조건 THREAD_RUNNING 상태여야 해
 	ASSERT (thread_current()->status == THREAD_RUNNING);
+
+	// 진짜 죽은 애들을 바로 free 못 하고,
+// 나중에 안전한 순간에 정리하기 위해 잠깐 대기시키는 리스트!
 	while (!list_empty (&destruction_req)) {
+		// destruction_req는 죽기로 예약된 스레드 리스트
+		// (exit() 했지만 아직 메모리 회수 안 된 애들)
+		//스레드 갈아타기 전에 죽은 스레드의 메모리 정리 
 		struct thread *victim =
 			list_entry (list_pop_front (&destruction_req), struct thread, elem);
+			// destruction_req 리스트에서 죽기로 예약된 스레드를 하나 꺼낸다.
+// 1. list_pop_front(): 리스트 맨 앞의 list_elem (노드) 하나 꺼냄 (list_elem* 타입)
+// 2. list_entry(): 꺼낸 노드가 struct thread 안의 elem 필드였다는 걸 바탕으로,
+//                 원래의 struct thread* 구조체 전체를 복원함!
+//	 복원하는 이유 :리스트에는 스레드의 list_elem만 들어가지만,
+// 우리가 진짜 작업하려면 → 그 전체 스레드 구조체(struct thread) 가 필요하니까, 복원해서 구조체 시작 주소를 구해야함.
+//    → 즉, list_elem* → struct thread* 로 되돌려주는 마법 매크임.
+//       (구조체 안에서 elem의 위치를 계산해서 시작 주소로 backtrace!)
+//
+// 최종 결과:
+// 'victim'은 죽을 스레드를 가리키는 포인터가 되고,
+// 이후 이 스레드의 메모리를 free 해서 완전히 제거할 수 있음!
+//페이지 단위로 할당된 메모리를 해제하는 함수
+//스레드 하나는 보통 4KB짜리 페이지 하나에 전부 들어가 있어!
 		palloc_free_page(victim);
 	}
 	thread_current ()->status = status;
+	// 현재 스레드의 상태를 바꿔줌
+	// thread_current ()->status 을 인자로 받아욘 status로 바꿔줌
+
 	schedule ();
 }
 
+
+
+
+
+
+//현재 스레드에서 다음 실행할 스레드로 CPU를 넘기는 진짜 문맥 전환 함수
+//지금 실행 중이던 스레드에서
+// 다음 실행할 스레드로 CPU를 넘겨주는 작업을 하는 함수임
 static void
 schedule (void) {
 	struct thread *curr = running_thread ();
+//`curr`: 지금 CPU에서 돌고 있는 스레드
+
 	struct thread *next = next_thread_to_run ();
+//- `next`: 다음에 CPU 줄 스레드 (ready_list에서 꺼냄!)
 
 	ASSERT (intr_get_level () == INTR_OFF);
+	//인터럽트 꺼져 있어야 함 (context switch 중에는 방해 금지!)
+
+
 	ASSERT (curr->status != THREAD_RUNNING);
+//현재 스레드 상태는 RUNNING이면 안 됨
+// (우린 이 스레드를 곧 내보낼 거니까)
+
 	ASSERT (is_thread (next));
+	//// 다음 스레드가 진짜 스레드인지 확인 (검증)
+
 	/* Mark us as running. */
 	next->status = THREAD_RUNNING;
+// 다음 스레드의 상태를 **RUNNING으로 바꿔줌**
+
 
 	/* Start new time slice. */
 	thread_ticks = 0;
+//  새 스레드가 타이머 틱 0부터 시작하도록 초기화
 
 #ifdef USERPROG
 	/* Activate the new address space. */
@@ -566,6 +658,7 @@ schedule (void) {
 		   The real destruction logic will be called at the beginning of the
 		   schedule(). */
 		if (curr && curr->status == THREAD_DYING && curr != initial_thread) {
+			// 현재 스레드가 죽으려는 상태면 `destruction_req` 리스트에 넣어놔  -> 프리 나중에 해주기 
 			ASSERT (curr != next);
 			list_push_back (&destruction_req, &curr->elem);
 		}

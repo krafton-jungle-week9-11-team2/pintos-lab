@@ -153,6 +153,11 @@ list_tail (struct list *list) {
 /* Inserts ELEM just before BEFORE, which may be either an
    interior element or a tail.  The latter case is equivalent to
    list_push_back(). */
+	 //양방향 연결 리스트의 “중간 삽입” 함수
+	 //before라는 노드 바로 앞에 elem을 끼워넣는 함수
+	//  잠자려는 스레드의 wakeup_tick 값을 기준으로,
+// 이미 정렬된 리스트에 앞, 중간, 끝 어디든 알맞게 끼워 넣는 거임.
+// 그래야 나중에 효율적으로 정확한 순서로 스레드를 깨울 수 있음.  
 void
 list_insert (struct list_elem *before, struct list_elem *elem) {
 	ASSERT (is_interior (before) || is_tail (before));

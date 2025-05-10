@@ -263,10 +263,22 @@ intr_context (void) {
    interrupt handler to yield to a new process just before
    returning from the interrupt.  May not be called at any other
    time. */
+	// 인터럽트 핸들러가 끝날 때 문맥 전환하는 함수 
 void
 intr_yield_on_return (void) {
 	ASSERT (intr_context ());
+	// assert 조건이 참인지 검사하는 디버깅 도구 
+	// 거짓이면 핀토스 멈추고 커널 패닉 발생 
+	//intr_context는 cpu가 인터럽트 핸들러 안에 있는지 확인하는 함수 
+	//왜냐면 intr_yield_on_return 이 함수 자체는 인터럽트 핸들러 안에서만 호출되어야 함.
+	// 바깥에서 호출되면 문맥전환이 꼬일 위험이 있음 
 	yield_on_return = true;
+	// yield_on_return은 전역 변수
+	// 스레드 전환을 예약해두는 플러그 
+ // 지금은 바꿀 수 없으니까 나중에 인터럽트 끝나고 돌아갈때 바꿔줘 라고 cpu한테 메모 남김.
+ //false를 따로 해주지 않는 이유는 어차피 매 인터럽트마다 초기화된 상태로 이용함 
+ //yield_on_return은 인터럽트 핸들러마다 “한 번 쓰고 마는 플래그” 같은 거임!!
+ // 별로도 false로 돌려놓을 필요 없이 다음 인터랩트 때 다시 새로 시작하는 구조 
 }
 
 /* 8259A Programmable Interrupt Controller. */
