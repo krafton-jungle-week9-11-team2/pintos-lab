@@ -237,26 +237,55 @@ thread_block (void) {
 	thread_current ()->status = THREAD_BLOCKED;
 	schedule ();
 }
-
-/* Transitions a blocked thread T to the ready-to-run state.
-   This is an error if T is not blocked.  (Use thread_yield() to
-   make the running thread ready.)
-
-   This function does not preempt the running thread.  This can
-   be important: if the caller had disabled interrupts itself,
-   it may expect that it can atomically unblock a thread and
-   update other data. */
+bool priority_more(const struct list_elem *a, const struct list_elem *b, void *aux) {
+    return list_entry(a, struct thread, elem)->priority >
+           list_entry(b, struct thread, elem)->priority;
+}
+/* ➡ 차단(BLOCKED) 상태에 있는 스레드 T를 실행 준비 상태(READY)로 전환한다.
+T가 BLOCKED 상태가 아니라면 이는 오류다.
+(현재 실행 중인 스레드를 READY 상태로 만들고 싶다면 thread_yield()를 사용하라.)
+이 함수는 현재 실행 중인 스레드를 선점(preempt)하지 않는다.
+이것은 중요한데, 호출자가 인터럽트를 미리 비활성화한 경우,
+스레드를 깨우고 다른 데이터를 원자적으로(중간에 끼어들지 않고) 업데이트할 수 있다고 기대할 수 있기 때문이다.
+*/
 void
 thread_unblock (struct thread *t) {
+	// 인자로 깨울 대상 받음 
 	enum intr_level old_level;
-
+	//인터럽트 상태를 저장할 변수
 	ASSERT (is_thread (t));
-
+	//t가 진짜 유효한 스레드인지 검사하는 매크로
 	old_level = intr_disable ();
+	//인터럽트를 잠시 끔.
+//왜? ready_list는 여러 스레드가 동시에 접근할 수 있는 공유 자원이니까,
+// 그 중간에 인터럽트가 들어오면 데이터가 꼬일 수 있음.
+
+
 	ASSERT (t->status == THREAD_BLOCKED);
-	list_push_back (&ready_list, &t->elem);
+	//지금 이 스레드는 BLOCKED 상태여야만 해.
+	//왜냐면 thread_unblock()은 잠들어 있던 스레드를 깨우는 함수니까,
+// 이미 깨어 있거나 종료된 애를 다시 깨우면 안 되잖아? 그래서 상태 체크.
+
+	// list_push_back (&ready_list, &t->elem);
+	list_insert_ordered(&ready_list,&t->elem,priority_more,NULL);
+	// 이 줄에서 t를 ready_list에 삽입하는데 우선순위에 따라 정렬되도록 넣어.
+	// &ready_list: 스레드가 실행되길 기다리는 대기열
+	//&t->elem: 스레드가 가진 리스트 노드 (모든 스레드는 elem 필드 가짐)
+//priority_more: 우선순위를 비교하는 함수
+//NULL: 비교 함수에 넘길 추가 인자 (여기선 없음)
+// 우선순위 스케줄링이 되도록 정렬 기반으로 삽입방식을 바꿈.
+
+
 	t->status = THREAD_READY;
+	//스레드 상태를 READY로 바꿔줌.
+//이제 이 스레드는 실행 대기 중인 스레드가 됨.
+
+
+
 	intr_set_level (old_level);
+	// 아까 껐던 인터럽트를 다시 원래대로 복원.
+
+
 }
 
 /* Returns the name of the running thread. */
@@ -637,7 +666,7 @@ schedule (void) {
 
 	/* Mark us as running. */
 	next->status = THREAD_RUNNING;
-// 다음 스레드의 상태를 **RUNNING으로 바꿔줌**
+// 다음 스레드의 상태를 RUNNING으로 바꿔줌
 
 
 	/* Start new time slice. */
@@ -680,4 +709,8 @@ allocate_tid (void) {
 	lock_release (&tid_lock);
 
 	return tid;
+}
+
+struct thread *thread_get_idle(void){
+	return idle_thread;
 }

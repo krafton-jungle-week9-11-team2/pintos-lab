@@ -30,6 +30,9 @@ static int64_t ticks;
 // 바꾸면 안돼? 테스트케이스가 다 그 값을 기준으로 설정되어 있어서 문제가 생길 수도 있음. 
 
 
+static struct list sleep_list; // 슬립 리스트 전역 변수 추가 
+
+
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
@@ -70,6 +73,7 @@ timer_init (void) {
 	   nearest. */
 		// 타이머 칩에게 “11932마다 한 번씩 인터럽트 쏴줘”라고 설정하는 것
 		// 클럭을 11932 쏘는것이 아님. 타이머 칩의 카운트가 11932만큼 기다렸다가 ->  11932가 어떻게 보면 1/100초 그거임
+	list_init(&sleep_list);
 	uint16_t count = (1193180 + TIMER_FREQ / 2) / TIMER_FREQ;
  // count = 입력 주파수 ÷ 출력 주파수
  //TIMER_FREQ = 100
@@ -137,23 +141,75 @@ timer_elapsed (int64_t then) {
 // → 이 둘의 차이를 구하면, 잠든 이후 지난 시간(틱 수)이 됨
 
 }
-
+bool wakeup_tick_less(const struct list_elem *a,
+                      const struct list_elem *b,
+                      void *aux UNUSED) {
+    struct thread *ta = list_entry(a, struct thread, elem);
+    struct thread *tb = list_entry(b, struct thread, elem);
+    return ta->wakeup_tick < tb->wakeup_tick;
+}
 /* Suspends execution for approximately TICKS timer ticks. */
 // 목표: 틱만큼 잠자게 해주는 함수 
 void
 timer_sleep (int64_t ticks) {
-	//ticks -> 자러 들어간 틱수
-	int64_t start = timer_ticks ();
-	// timer_ticks 이거 뭐냐면 지금까지 운영체제가 부팅된 이후 지난 틱수를 반환함.
-	// 그걸 start 변수에 저장 .
+	 if (ticks <= 0) return;
+	//  //  1. 요청한 시간이 0 이하라면 굳이 잘 필요가 없음 → 바로 return
+    // 예: timer_sleep(0), timer_sleep(-1) 이런 경우는 의미 없음.
+	
+  //2. 현재 실행 중인 스레드 정보를 가져온다.
+    // 자는 대상은 바로 이 스레드(curr)다.
+	struct thread *curr = thread_current();
+
+
+	//  3. 만약 이 스레드가 idle thread라면 잠들게 해선 안 된다.
+    // idle thread는 CPU가 아무 일 없을 때 사용하는 "대기용 스레드"임.
+    // 얘가 자면 시스템이 멈춘 것처럼 보일 수 있기 때문에 그냥 return
+	if (curr == thread_get_idle()) return;
+
+
+	// 4. 현재 시점으로부터 'ticks'만큼 뒤의 시점을 계산
+    // 이 시점이 되면 스레드를 깨워야 하므로 wakeup_time에 저장
+	int64_t wakeup_time = timer_ticks() + ticks;
+
+
+// 8. 인터럽트가 켜져 있는 상태인지 마지막으로 확인
+    // 디버깅용으로 남겨두는 ASSERT.
+    // 실제로는 intr_disable() 이후 thread_block()까지 꺼져 있는 게 맞기 때문에
+    // 이 시점에서 ON이어야 하는 건 아님. (조금 애매한 위치일 수 있음)
 	ASSERT (intr_get_level () == INTR_ON);
-	//디버깅용 안전장치
-	//  인터럽트가 켜져 있어야 제대로 작동함. -> 그래서 인터럽트가 켜져있는지를 확인하는 함수.
-	while (timer_elapsed (start) < ticks)
-// "start 이후 몇 틱이 흘렀을까?"를 알려주는 함수
-// → 현재 시각 - start 시각
-// 그게 내가 잠잘 시간보다 같기 전까지 계속 돔 
-		thread_yield ();
+
+//5. sleep_list에 안전하게 접근하려면 인터럽트를 꺼야 함
+    // sleep_list는 여러 스레드가 동시에 접근할 수 있기 때문에
+    // 중간에 인터럽트가 끼어들면 데이터가 꼬일 수 있음 → race condition
+	enum intr_level old_level = intr_disable();  // 동기화 위해 인터럽트 끔
+
+// 6. 현재 스레드의 깨울 시점을 설정
+    // 이 값은 timer_interrupt()에서 비교 기준으로 사용됨
+	curr->wakeup_tick = wakeup_time;
+	
+
+
+	// 7. sleep_list에 현재 스레드를 삽입
+    // 리스트는 wakeup_tick 기준으로 정렬되어 있어야 함.
+    // 그래야 timer_interrupt에서 앞에 있는 애만 보면 되니까 훨씬 빠름.
+    list_insert_ordered(&sleep_list, &curr->elem, wakeup_tick_less, NULL);
+
+
+	
+
+		// 9. 현재 스레드를 BLOCKED 상태로 바꾸고 CPU에서 제외시킴
+    // 이렇게 하면 이 스레드는 sleep_list에만 존재하고, 깨어나기 전까지는 실행되지 않음.
+    // 즉, busy waiting 없이 자는 효과!
+    thread_block();  // 스레드 재움
+
+
+
+
+		// 10. 방금 전에 껐던 인터럽트를 다시 원래대로 복원
+    // 시스템 상태를 그대로 돌려놓는 것. (꼭 해야 함!)
+    intr_set_level(old_level);  // 인터럽트 다시 켬
+
+
 }
 
 /* Suspends execution for approximately MS milliseconds. */
@@ -187,6 +243,29 @@ timer_interrupt (struct intr_frame *args UNUSED) {
 	// struct intr_frame 는 인터럽트가 발생했을 때, cpu 상태(레지스터, 플래그)를 담은 구조체
 	// UNUSED -> 인자로 받긴 하지만 안쓴다는 얘기
 	ticks++; // 1/100초마다 호출됨 (10ms)
+    // sleep_list에서 깰 애들 찾아서 깨우기
+    while (!list_empty(&sleep_list)) {
+			// 잠들어 있는 쓰레드 목록이 비어있지 않다면 
+
+			// 맨 앞에 있는 스레드를 꺼내오는 코드 
+        struct thread *t = list_entry(list_front(&sleep_list), struct thread, elem);
+			// list_front()는 리스트의 첫번째 노드를 가져옴. 
+			//list_entry()는 그 노드가 포함된 struct thread 구조체 전체를 가져오는 매크로임.
+			// 리스트에서 elem 필드를 가진 thread 구조체의 포인터를 얻는거지.
+        if (t->wakeup_tick > ticks)
+				// 아직 깨어날 시간이 안 된 경우 꺠우지말아라 
+				// 근데 sleep_list가 wakeup_tick 순으로 정렬되어 있어야 이 방식이 효율적임 => 그래야 앞에 있는 애만 비교해보고 넘기면 됨 .
+            break;
+
+        list_pop_front(&sleep_list);
+				//이제 깨어날 시간이 된 스레드니까, sleep_list에서 제거해줌.
+				//pop_front()는 리스트 맨 앞 요소를 빼는 함수
+        thread_unblock(t);
+				// 잠들어 있던 스레드 t를 깨우는 함수
+				// t를 ready 상태로 만들어서 CPU가 다시 실행할 수 있게 함.
+    }
+
+    
 	thread_tick();   // 현재 스레드의 틱도 증가 -> thread_ticks 이게 증가 
 	// thread_ticks 는 문맥전환되면 자동으로 0으로 초기화됨  (thread_launch에서)
 }

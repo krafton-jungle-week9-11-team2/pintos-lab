@@ -280,7 +280,7 @@ intr_yield_on_return (void) {
  //yield_on_return은 인터럽트 핸들러마다 “한 번 쓰고 마는 플래그” 같은 거임!!
  // 별로도 false로 돌려놓을 필요 없이 다음 인터랩트 때 다시 새로 시작하는 구조 
 }
-
+
 /* 8259A Programmable Interrupt Controller. */
 
 /* Every PC has two 8259A Programmable Interrupt Controller (PIC)
