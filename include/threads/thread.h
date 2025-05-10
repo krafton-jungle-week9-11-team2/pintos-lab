@@ -109,6 +109,8 @@ struct thread {
 	/* Owned by thread.c. */
 	struct intr_frame tf;               /* Information for switching */
 	unsigned magic;                     /* Detects stack overflow. */
+    
+	int64_t wakeup_tick; // Alarm clock 과제 - 어느 틱에 깨울지.
 };
 
 /* If false (default), use round-robin scheduler.
@@ -134,6 +136,8 @@ const char *thread_name (void);
 
 void thread_exit (void) NO_RETURN;
 void thread_yield (void);
+
+bool thread_priority_cmp(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
 
 int thread_get_priority (void);
 void thread_set_priority (int);

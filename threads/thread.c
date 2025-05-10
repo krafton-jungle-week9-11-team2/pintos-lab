@@ -54,9 +54,11 @@ static unsigned thread_ticks;   /* # of timer ticks since last yield. */
    Controlled by kernel command-line option "-o mlfqs". */
 bool thread_mlfqs;
 
-/* Alarm clock 과제 */
+/* sleep_lock for sleeping threads. */
+// static struct lock sleep_lock;
+
+/* List of sleeping threads. */
 static struct list sleep_list;
-static int64_t next_tick_to_awake;
 
 
 static void kernel_thread (thread_func *, void *aux);
@@ -139,6 +141,7 @@ thread_init_orig (void) {
 	lock_init (&tid_lock);
 	list_init (&ready_list);
 	list_init (&destruction_req);
+	list_init (&sleep_list); /** Alarm Clock 과제 */
 
 	/* Set up a thread structure for the running thread. */
 	initial_thread = running_thread ();
@@ -292,6 +295,7 @@ thread_unblock (struct thread *t) {
 	old_level = intr_disable ();
 	ASSERT (t->status == THREAD_BLOCKED);
 	list_push_back (&ready_list, &t->elem);
+
 	t->status = THREAD_READY;
 	intr_set_level (old_level);
 }
@@ -394,6 +398,52 @@ thread_yield (void) {
 		list_push_back (&ready_list, &curr->elem);
 	do_schedule (THREAD_READY);
 	intr_set_level (old_level);
+}
+
+/* Compares the wakeup_tick of two threads A and B.
+   Returns true if A's wakeup_tick is less than B's wakeup_tick. */
+bool thread_priority_cmp(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED) {
+	const struct thread *thread_a = list_entry(a, struct thread, elem);
+	const struct thread *thread_b = list_entry(b, struct thread, elem);
+	return thread_a->wakeup_tick < thread_b->wakeup_tick;
+}
+
+void thread_sleep(int64_t end_tick){
+    enum intr_level old_level;
+    struct thread *cur = thread_current();
+
+    ASSERT(!intr_context());
+    ASSERT(cur != idle_thread);
+
+    old_level = intr_disable();
+    cur->wakeup_tick = end_tick; // 쓰레드에 종료틱 설정
+
+    // lock_acquire(&sleep_lock); 
+    list_insert_ordered(&sleep_list, &cur->elem, thread_priority_cmp, NULL); // 슬립리스트에 종료틱 오름차순으로 삽입
+    // lock_release(&sleep_lock);
+
+    thread_block(); // 현재 쓰레드 블록
+
+    intr_set_level(old_level);
+}
+
+
+void thread_check_sleep_list(){
+    enum intr_level old_level;
+    struct thread *t;
+    old_level = intr_disable();
+    int64_t ticks = timer_ticks();
+	
+    while (!list_empty(&sleep_list)) { // 슬립 리스트에서 꺠울 쓰레드 탐색
+        t = list_entry(list_front(&sleep_list), struct thread, elem); // 슬립 리스트 맨 앞 쓰레드 조회
+        if (t->wakeup_tick > ticks) { // 쓰레드가 현재 글로벌 틱보다 크다면 탐색 종료
+            break;
+        }
+        list_pop_front(&sleep_list); // 쓰레드가 현재 글로벌 틱보다 작거나 같다면 슬립 리스트에서 제거
+        thread_unblock(t); // 해당 쓰레드 언블록
+    }
+    // lock_release(&sleep_lock);
+    intr_set_level(old_level);
 }
 
 /* Sets the current thread's priority to NEW_PRIORITY. */
