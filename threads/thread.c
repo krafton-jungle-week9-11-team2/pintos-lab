@@ -215,8 +215,8 @@ thread_create (const char *name, int priority,
 
 	/* Add to run queue. */
 	thread_unblock (t);
-	if (t->priority > thread_get_priority ())
-		thread_yield ();
+	if(t->priority > thread_current()->priority)
+		thread_yield();
 	return tid;
 }
 
@@ -337,9 +337,13 @@ bool thread_wakeup_tick_cmp(const struct list_elem *a, const struct list_elem *b
 /* Compares the priority of two threads A and B.
    A가 크면 true, B가 크면 false. */
 bool thread_priority_cmp(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED) {
-  const struct thread *thread_a = list_entry(a, struct thread, elem);
-  const struct thread *thread_b = list_entry(b, struct thread, elem);
-  return thread_a->priority > thread_b->priority;
+    struct thread*thread_a = list_entry(a, struct thread, elem);
+    struct thread*thread_b = list_entry(b, struct thread, elem);
+
+	if (thread_a == NULL || thread_b == NULL)
+		return false;
+
+    return thread_a->priority > thread_b->priority;
 }
 
 void thread_sleep(int64_t end_tick){
@@ -384,6 +388,21 @@ void thread_check_sleep_list(){
 // 현재 스레드의 우선순위가 변경되어 더 이상 가장 높은 우선순위가 아니라면, CPU를 양보시켜야 함.
 void
 thread_set_priority (int new_priority) {
+	thread_current ()->priority = new_priority;
+
+	/** project1-Priority Inversion Problem */
+    thread_current()->original_priority = new_priority;
+
+	/** project1-Priority Inversion Problem */
+    refresh_priority();
+
+	/** project1-Priority Scheduling */
+	thread_yield_when_needed();
+}
+
+
+void
+thread_set_priority_orig (int new_priority) {
   struct thread* front_ready_thread = list_entry(list_begin(&ready_list), struct thread, elem);
 
   thread_current ()->priority = new_priority;
@@ -425,6 +444,71 @@ thread_get_recent_cpu (void) {
 	/* TODO: Your implementation goes here */
 	return 0;
 }
+
+
+/*-- Priority donation 과제 --*/
+void 
+donate_priority() {
+    struct thread *t = thread_current();
+    int priority = t->priority;
+
+    for (int depth = 0; depth < 8; depth++) 
+	{
+        if (t->wait_lock == NULL)
+            break;
+
+        t = t->wait_lock->holder;
+        t->priority = priority;
+    }
+}
+
+void remove_with_lock(struct lock *lock) 
+{
+    struct thread *t = thread_current();
+    struct list_elem *curr = list_begin(&t->donations);
+    struct thread *curr_thread = NULL;
+
+    while (curr != list_end(&t->donations)) 
+	{
+        curr_thread = list_entry(curr, struct thread, donation_elem);
+
+        if (curr_thread->wait_lock == lock)
+            list_remove(&curr_thread->donation_elem);
+
+        curr = list_next(curr);
+    }
+}
+
+void refresh_priority(void) 
+{
+    struct thread *t = thread_current();
+    t->priority = t->original_priority;
+
+    if (list_empty(&t->donations))
+        return;
+
+    list_sort(&t->donations, thread_priority_cmp, NULL);
+
+    struct list_elem *max_elem = list_front(&t->donations);
+    struct thread *max_thread = list_entry(max_elem, struct thread, donation_elem);
+
+    if (t->priority < max_thread->priority)
+        t->priority = max_thread->priority;
+}
+
+void 
+thread_yield_when_needed (void) 
+{
+    if (list_empty(&ready_list))
+        return;
+
+    struct thread *thr = list_entry(list_front(&ready_list), struct thread, elem);
+
+    if (thread_get_priority() < thr->priority)
+        thread_yield();
+}
+/*-- Priority donation 과제 --*/
+
 
 /* Idle thread.  Executes when no other thread is ready to run.
 
@@ -486,7 +570,13 @@ init_thread (struct thread *t, const char *name, int priority) {
 	t->status = THREAD_BLOCKED;
 	strlcpy (t->name, name, sizeof t->name);
 	t->tf.rsp = (uint64_t) t + PGSIZE - sizeof (void *);
-	t->priority = priority;
+
+	/*-- Priority donation 과제 --*/
+    t->priority = t->original_priority = priority;
+    list_init(&t->donations);
+    t->wait_lock = NULL;
+	/*-- Priority donation 과제 --*/
+
 	t->magic = THREAD_MAGIC;
 }
 
