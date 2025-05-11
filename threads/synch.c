@@ -66,7 +66,11 @@ sema_down (struct semaphore *sema) {
 
 	old_level = intr_disable ();
 	while (sema->value == 0) {
-		list_push_back (&sema->waiters, &thread_current ()->elem);
+		/*-- Priority donation 과제 --*/
+		// 현재 스레드를 priority 높은 순으로 waiters 리스트에 삽입
+		list_insert_ordered(&sema->waiters, &thread_current()->elem, thread_priority_cmp, NULL);
+		// list_push_back (&sema->waiters, &thread_current ()->elem); 이건 기존꺼.
+		/*-- Priority donation 과제 --*/
 		thread_block ();
 	}
 	sema->value--;
@@ -109,10 +113,21 @@ sema_up (struct semaphore *sema) {
 	ASSERT (sema != NULL);
 
 	old_level = intr_disable ();
-	if (!list_empty (&sema->waiters))
+	if (!list_empty (&sema->waiters)){
+
+	/*-- Priority donation 과제 --*/
+		/* Priority donation 과제
+		   waiters 리스트를 priority 기준으로 정렬하여 가장 높은 priority 스레드를 먼저 깨우도록 함.
+		*/	
+		list_sort(&sema->waiters, thread_priority_cmp, NULL);
 		thread_unblock (list_entry (list_pop_front (&sema->waiters),
 					struct thread, elem));
+	}
 	sema->value++;
+
+	/*-- Priority donation 과제 --*/
+	thread_yield_when_needed();  // 현재 running thread가 우선순위에 밀리는 상황이라면 양보할지 판단
+	/*-- Priority donation 과제 --*/
 	intr_set_level (old_level);
 }
 
@@ -188,8 +203,23 @@ lock_acquire (struct lock *lock) {
 	ASSERT (!intr_context ());
 	ASSERT (!lock_held_by_current_thread (lock));
 
+
+	/*-- Priority donation 과제 --*/
+    struct thread *t = thread_current();
+    if (lock->holder != NULL) {
+        t->wait_lock = lock;
+		list_insert_ordered(&lock->holder->donations, &t->donation_elem, thread_priority_cmp, NULL);
+        donate_priority();
+    }
+	/*-- Priority donation 과제 --*/
+
 	sema_down (&lock->semaphore);
-	lock->holder = thread_current ();
+	// lock->holder = thread_current ();
+
+	/*-- Priority donation 과제 --*/
+	t->wait_lock = NULL;
+	lock->holder = thread_current();
+	/*-- Priority donation 과제 --*/
 }
 
 /* Tries to acquires LOCK and returns true if successful or false
@@ -221,6 +251,11 @@ void
 lock_release (struct lock *lock) {
 	ASSERT (lock != NULL);
 	ASSERT (lock_held_by_current_thread (lock));
+	
+	/*-- Priority donation 과제 --*/
+    remove_with_lock(lock);
+    refresh_priority();
+	/*-- Priority donation 과제 --*/
 
 	lock->holder = NULL;
 	sema_up (&lock->semaphore);

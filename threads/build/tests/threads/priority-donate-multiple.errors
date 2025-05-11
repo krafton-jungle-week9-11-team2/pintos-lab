@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 qemu-system-x86_64: warning: TCG doesn't support requested feature: CPUID.01H:ECX.vmx [bit 5]
 =======
 Traceback (most recent call last):
@@ -16,3 +17,6 @@ Traceback (most recent call last):
     time.sleep(delay)
 KeyboardInterrupt
 >>>>>>> Alarm-clock-v0.1
+=======
+qemu-system-x86_64: warning: TCG doesn't support requested feature: CPUID.01H:ECX.vmx [bit 5]
+>>>>>>> main

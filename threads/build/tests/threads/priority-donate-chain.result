@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 FAIL
 Test output failed to match any acceptable form.
 
@@ -88,3 +89,6 @@ Differences in `diff -u' format:
 + (priority-donate-chain) main should have priority 21.  Actual priority: 0.
   (priority-donate-chain) main finishing with priority 0.
   (priority-donate-chain) end
+=======
+PASS
+>>>>>>> main

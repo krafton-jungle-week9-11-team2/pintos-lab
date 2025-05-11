@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 FAIL
 Test output failed to match any acceptable form.
 
@@ -23,3 +24,6 @@ Differences in `diff -u' format:
   (priority-donate-lower) acquire must already have finished.
   (priority-donate-lower) Main thread should have priority 21.  Actual priority: 21.
   (priority-donate-lower) end
+=======
+PASS
+>>>>>>> main

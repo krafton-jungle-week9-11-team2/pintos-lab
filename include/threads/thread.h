@@ -111,6 +111,14 @@ struct thread {
 	unsigned magic;                     /* Detects stack overflow. */
     
 	int64_t wakeup_tick; // Alarm clock 과제 - 어느 틱에 깨울지.
+
+
+	/*-- Priority donation 과제 --*/
+	int original_priority;
+    struct lock *wait_lock;
+    struct list donations;
+    struct list_elem donation_elem;
+	/*-- Priority donation 과제 --*/
 };
 
 /* If false (default), use round-robin scheduler.

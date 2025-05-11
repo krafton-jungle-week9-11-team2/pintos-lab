@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 FAIL
 Test output failed to match any acceptable form.
 
@@ -30,3 +31,6 @@ Differences in `diff -u' format:
   (priority-donate-nest) Medium thread should just have finished.
   (priority-donate-nest) Low thread should have priority 31.  Actual priority: 31.
   (priority-donate-nest) end
+=======
+PASS
+>>>>>>> main
