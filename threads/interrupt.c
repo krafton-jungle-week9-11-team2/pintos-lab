@@ -14,6 +14,11 @@
 #ifdef USERPROG
 #include "userprog/gdt.h"
 #endif
+/*
+==============================
+ 인터럽트 제어 함수(on/off)
+==============================
+*/
 
 /* Number of x86_64 interrupts. */
 #define INTR_CNT 256

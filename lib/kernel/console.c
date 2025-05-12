@@ -7,6 +7,15 @@
 #include "threads/interrupt.h"
 #include "threads/synch.h"
 
+/*
+=================================================
+하나의 os를 만드는 거니까 printf자체도
+우리가 구현해줘야 하는거임
+
+이 파일에서 printf()를 구현해준다.
+=================================================
+*/
+
 static void vprintf_helper (char, void *);
 static void putchar_have_lock (uint8_t c);
 

@@ -87,13 +87,21 @@ typedef int tid_t;
  * blocked state is on a semaphore wait list. */
 struct thread {
 	/* Owned by thread.c. */
-	tid_t tid;                          /* Thread identifier. */
-	enum thread_status status;          /* Thread state. */
-	char name[16];                      /* Name (for debugging purposes). */
-	int priority;                       /* Priority. */
-
+	tid_t tid;                          /* Thread ID */
+	enum thread_status status;          /* Running, Ready, Blocked */
+	char name[16];                      /* Name (디버깅용). */
+	int priority;                       /* Priority.우선순위 */
+    int64_t wakeup_tick;                /*깨어나야 할 tick 변수 추가 */
 	/* Shared between thread.c and synch.c. */
-	struct list_elem elem;              /* List element. */
+	struct list_elem elem;              
+	/*
+	====================================================
+	                 List element.
+					     elem 
+	스레드 구조체 안에 있는 list_elem 이라는 구조체의 멤버
+
+	====================================================
+	*/
 
 #ifdef USERPROG
 	/* Owned by userprog/process.c. */
@@ -105,8 +113,8 @@ struct thread {
 #endif
 
 	/* Owned by thread.c. */
-	struct intr_frame tf;               /* Information for switching */
-	unsigned magic;                     /* Detects stack overflow. */
+	struct intr_frame tf;               /* 문맥 전환 시 레지스터 저장 */
+	unsigned magic;                     /* 스택 오버플로우 확인용 */
 };
 
 /* If false (default), use round-robin scheduler.

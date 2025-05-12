@@ -7,6 +7,12 @@
 #include "threads/interrupt.h"
 #include "threads/io.h"
 
+/*
+==============================
+   키보드 입력 및 인터럽트 큐
+==============================
+*/
+
 /* Keyboard data register port. */
 #define DATA_REG 0x60
 

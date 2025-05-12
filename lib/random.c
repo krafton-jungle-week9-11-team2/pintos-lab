@@ -3,6 +3,12 @@
 #include <stdint.h>
 #include "debug.h"
 
+/*
+======================
+고정된 난수 시퀀스
+======================
+*/
+
 /* RC4-based pseudo-random number generator (PRNG).
 
    RC4 is a stream cipher.  We're not using it here for its

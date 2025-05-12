@@ -5,6 +5,12 @@
 #include <stdio.h>
 #include <string.h>
 
+/*
+===========================
+       디버깅 도구
+===========================
+*/
+
 /* Prints the call stack, that is, a list of addresses, one in
    each of the functions we are nested within.  gdb or addr2line
    may be applied to kernel.o to translate these into file names,

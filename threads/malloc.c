@@ -9,6 +9,13 @@
 #include "threads/synch.h"
 #include "threads/vaddr.h"
 
+/*
+=================================
+    커널용 malloc / free
+=================================
+
+*/
+
 /* A simple implementation of malloc().
 
    The size of each request, in bytes, is rounded up to a power

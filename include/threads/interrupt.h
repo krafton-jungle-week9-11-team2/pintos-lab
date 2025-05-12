@@ -8,13 +8,20 @@
 enum intr_level {
 	INTR_OFF,             /* Interrupts disabled. */
 	INTR_ON               /* Interrupts enabled. */
+	// 지금 인터럽트가 꺼져 있는지 켜져 있는지 확인
 };
 
 enum intr_level intr_get_level (void);
 enum intr_level intr_set_level (enum intr_level);
 enum intr_level intr_enable (void);
-enum intr_level intr_disable (void);
-
+enum intr_level intr_disable (void); 
+/*
+===============================================
+            인터럽트 즉시 꺼버리기
+	thread_sleep() 같은 곳에서 race condition
+	방지용으로 자주 쓴다. 
+===============================================
+*/
 /* Interrupt stack frame. */
 struct gp_registers {
 	uint64_t r15;

@@ -3,6 +3,12 @@
    This data structure is thoroughly documented in the Tour of
    Pintos for Project 3.
 
+
+   ================================================
+   비트맵 및 해시 테이블 구현 
+   프로젝트 3이상에서 유용하게 사용된다. 
+   ================================================
+
    See hash.h for basic information. */
 
 #include "hash.h"

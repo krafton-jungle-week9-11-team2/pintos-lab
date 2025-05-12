@@ -8,6 +8,14 @@
 #include "threads/synch.h"
 #include "threads/thread.h"
 
+/*
+===============================================================
+시리얼 포트 입출력
+원래는 컴퓨터와 외부장치 (모뎀, 다른 컴퓨터)를 연결할 때 쓰던 장치
+printf() 를 쓰면 이 시리얼 포트로 글자가 전송
+===============================================================
+*/
+
 /* Register definitions for the 16550A UART used in PCs.
    The 16550A has a lot more going on than shown here, but this
    is all we need.

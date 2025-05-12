@@ -9,6 +9,14 @@
 
 /* VGA text screen support.  See [FREEVGA] for more information. */
 
+/*
+=====================================
+VGA 출력 , 
+컴퓨터 화면에 글자를 표시하는 방식
+직접 수정 불필요
+=====================================
+*/
+
 /* Number of columns and rows on the text display. */
 #define COL_CNT 80
 #define ROW_CNT 25

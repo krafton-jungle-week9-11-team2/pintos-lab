@@ -1,6 +1,14 @@
 #include "list.h"
 #include "../debug.h"
 
+/* 
+==============================
+양방향 연결 리스트
+매우 자주 사용된다. 
+프로젝트 시작전에 훓어보기 추천
+==============================
+*/
+
 /* Our doubly linked lists have two header elements: the "head"
    just before the first element and the "tail" just after the
    last element.  The `prev' link of the front header is null, as

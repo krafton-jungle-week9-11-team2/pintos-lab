@@ -14,6 +14,12 @@ typedef signed int int32_t;
 #define INT32_MIN (-INT32_MAX - 1)
 
 typedef signed long long int int64_t;
+/*
+64비트 크기의 정수형을 의미한다. 
+long long과 같지만 정확한 크기를 보장하기 위해
+쓰는 이름 ! 
+*/
+
 #define INT64_MAX 9223372036854775807LL
 #define INT64_MIN (-INT64_MAX - 1)
 
