@@ -447,13 +447,11 @@ thread_get_recent_cpu (void) {
 
 
 /*-- Priority donation 과제 --*/
-void 
-donate_priority() {
+void donate_priority() {
     struct thread *t = thread_current();
     int priority = t->priority;
 
-    for (int depth = 0; depth < 8; depth++) 
-	{
+    for (int depth = 0; depth < 8; depth++) {
         if (t->wait_lock == NULL)
             break;
 
@@ -462,25 +460,23 @@ donate_priority() {
     }
 }
 
-void remove_with_lock(struct lock *lock) 
-{
+void remove_with_lock(struct lock *lock)  {
     struct thread *t = thread_current();
     struct list_elem *curr = list_begin(&t->donations);
     struct thread *curr_thread = NULL;
 
-    while (curr != list_end(&t->donations)) 
-	{
+    while (curr != list_end(&t->donations))  {
         curr_thread = list_entry(curr, struct thread, donation_elem);
+        struct list_elem *next = list_next(curr);
 
         if (curr_thread->wait_lock == lock)
             list_remove(&curr_thread->donation_elem);
 
-        curr = list_next(curr);
+        curr = next;
     }
 }
 
-void refresh_priority(void) 
-{
+void refresh_priority(void)  {
     struct thread *t = thread_current();
     t->priority = t->original_priority;
 
@@ -497,8 +493,7 @@ void refresh_priority(void)
 }
 
 void 
-thread_yield_when_needed (void) 
-{
+thread_yield_when_needed (void) {
     if (list_empty(&ready_list))
         return;
 

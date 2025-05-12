@@ -108,8 +108,9 @@ struct thread {
 	struct intr_frame tf;               /* Information for switching */
 	unsigned magic;                     /* Detects stack overflow. */
     
+	/*-- Alarm clock 과제  --*/
 	int64_t wakeup_tick; // Alarm clock 과제 - 어느 틱에 깨울지.
-
+	/*-- Alarm clock 과제  --*/
 
 	/*-- Priority donation 과제 --*/
 	int original_priority;
