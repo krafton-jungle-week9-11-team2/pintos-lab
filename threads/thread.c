@@ -86,6 +86,25 @@ static tid_t allocate_tid (void);
 // setup temporal gdt first.
 static uint64_t gdt[3] = { 0, 0x00af9a000000ffff, 0x00cf92000000ffff };
 
+/* Compares the wakeup_tick of two threads A and B.
+   A가 작으면 true, B가 작으면 false. */
+bool thread_wakeup_tick_cmp(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED) {
+	const struct thread *thread_a = list_entry(a, struct thread, elem);
+	const struct thread *thread_b = list_entry(b, struct thread, elem);
+	return thread_a->wakeup_tick < thread_b->wakeup_tick;
+}
+
+/* Compares the priority of two threads A and B.
+   A가 크면 true, B가 크면 false. */
+bool thread_priority_cmp(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED) {
+    struct thread*thread_a = list_entry(a, struct thread, elem);
+    struct thread*thread_b = list_entry(b, struct thread, elem);
+
+	if (thread_a == NULL || thread_b == NULL)
+		return false;
+
+    return thread_a->priority > thread_b->priority;
+}
 
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
@@ -326,25 +345,6 @@ thread_yield (void) {
 	intr_set_level (old_level);
 }
 
-/* Compares the wakeup_tick of two threads A and B.
-   A가 작으면 true, B가 작으면 false. */
-bool thread_wakeup_tick_cmp(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED) {
-	const struct thread *thread_a = list_entry(a, struct thread, elem);
-	const struct thread *thread_b = list_entry(b, struct thread, elem);
-	return thread_a->wakeup_tick < thread_b->wakeup_tick;
-}
-
-/* Compares the priority of two threads A and B.
-   A가 크면 true, B가 크면 false. */
-bool thread_priority_cmp(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED) {
-    struct thread*thread_a = list_entry(a, struct thread, elem);
-    struct thread*thread_b = list_entry(b, struct thread, elem);
-
-	if (thread_a == NULL || thread_b == NULL)
-		return false;
-
-    return thread_a->priority > thread_b->priority;
-}
 
 void thread_sleep(int64_t end_tick){
     enum intr_level old_level;
@@ -397,7 +397,7 @@ thread_set_priority (int new_priority) {
     refresh_priority();
 
 	/** project1-Priority Scheduling */
-	thread_yield_when_needed();
+	check_and_preempt();
 }
 
 
@@ -493,16 +493,18 @@ void refresh_priority(void)  {
 }
 
 /*-- Priority CondVar 과제 --*/
-void 
-thread_yield_when_needed (void) {
+// 현재 실행 중인 스레드(curr)보다 더 높은 우선순위를 가진 스레드가 ready_list의 가장 앞에 있다면
+// 즉시 CPU를 양보(thread_yield())하도록 만듦.
+void check_and_preempt (void) {
 	if (thread_current() == idle_thread)
 		return;
 	if (list_empty(&ready_list))
 		return;
 	struct thread *curr = thread_current();
 	struct thread *ready = list_entry(list_front(&ready_list), struct thread, elem);
-	if (curr->priority < ready->priority) // ready_list에 현재 실행중인 스레드보다 우선순위가 높은 스레드가 있으면
-		thread_yield();
+
+	if (curr->priority < ready->priority)
+		thread_yield(); // ready_list에 현재 실행 중인 스레드보다 우선순위가 높은 스레드가 있으면 양보시킴.
 }
 /*-- Priority CondVar 과제 --*/
 /*-- Priority donation 과제 --*/

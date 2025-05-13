@@ -32,6 +32,39 @@
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 
+/* One semaphore in a list. */
+// 현재 스레드가 사용할 "자기 전용 이진 세마포어".
+struct semaphore_elem {
+	struct list_elem elem;              /* List element. */
+	struct semaphore semaphore;         /* This semaphore. */
+};
+
+
+// 두 sema의 'waiters list내 스레드 중 제일 높은 priority'를 비교
+// a가 높으면 true, b가 높으면 false.
+bool sema_priority_cmp(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
+{
+	struct semaphore_elem *sema_a = list_entry(a, struct semaphore_elem, elem);
+	struct semaphore_elem *sema_b = list_entry(b, struct semaphore_elem, elem);
+
+	struct list *waiters_a = &(sema_a->semaphore.waiters);
+	struct list *waiters_b = &(sema_b->semaphore.waiters);
+
+	struct thread *root_a = list_entry(list_begin(waiters_a), struct thread, elem);
+	struct thread *root_b = list_entry(list_begin(waiters_b), struct thread, elem);
+
+	return root_a->priority > root_b->priority;
+}
+
+// donation_elem의 priority를 기준으로 비교
+// a가 높으면 true, b가 높으면 false.
+bool donation_priority_cmp(const struct list_elem *a,
+						   const struct list_elem *b, void *aux UNUSED)
+{
+	struct thread *st_a = list_entry(a, struct thread, donation_elem);
+	struct thread *st_b = list_entry(b, struct thread, donation_elem);
+	return st_a->priority > st_b->priority;
+}
 
 /* Initializes semaphore SEMA to VALUE.  A semaphore is a
    nonnegative integer along with two atomic operators for
@@ -58,6 +91,19 @@ sema_init (struct semaphore *sema, unsigned value) {
    interrupts disabled, but if it sleeps then the next scheduled
    thread will probably turn interrupts back on. This is
    sema_down function. */
+/* ----------------- sema_down 설명 -----------------
+ * 목적: 전달받은 '세마포어 객체'를 통해
+ *       - 자원 카운트를 하나 줄이거나
+ *       - 값이 0이면 호출 스레드를 잠재운다.
+   
+// 동작:
+//   sema->value가 양수면 → 1 줄이고 통과
+//   sema->value가 0이면 → 지금 못 씀 → 현재 스레드는 waiters 리스트에 넣고 잠듦
+
+ * 세마포어의 용도는 호출자가 어떻게 초기화했느냐에 따라 두 가지:
+ *   (1) 자원 카운팅용  (초기값 >= 1) - 이때 struct semaphore *sema는 각 공유 자원 하나를 의미.
+ *   (2) 이벤트/신호용  (초기값 0 → 깨울 때 up) - 이때 struct semaphore *sema는 컨디션 변수의 대기용 (이진 세마포어)
+ * -------------------------------------------------- */
 void
 sema_down (struct semaphore *sema) {
 	enum intr_level old_level;
@@ -127,7 +173,7 @@ sema_up (struct semaphore *sema) {
 	sema->value++;
 
 	/*-- Priority donation 과제 --*/
-	thread_yield_when_needed();  // 현재 running thread가 우선순위에 밀리는 상황이라면 양보할지 판단
+	check_and_preempt();  // 현재 running thread가 우선순위에 밀리는 상황이라면 양보할지 판단
 	/*-- Priority donation 과제 --*/
 	intr_set_level (old_level);
 }
@@ -182,6 +228,17 @@ sema_test_helper (void *sema_) {
    acquire and release it.  When these restrictions prove
    onerous, it's a good sign that a semaphore should be used,
    instead of a lock. */
+/* 공유 자원 및 락 예시:
+```
+// devices/console.c
+static struct lock console_lock; //printf()처럼 여러 스레드가 동시에 쓰는 공용 콘솔 출력 장치를 보호하는 자원.
+void console_init(void) {
+    lock_init(&console_lock);
+}
+```
+- console_lock은 전역으로 선언되어 있고, init() 함수에서 초기화됨.
+- 이후 여러 스레드가 사용할 수 있도록 공유 자원으로 동작함.
+*/
 void
 lock_init (struct lock *lock) {
 	ASSERT (lock != NULL);
@@ -209,13 +266,16 @@ lock_acquire (struct lock *lock) {
     struct thread *t = thread_current();
     if (lock->holder != NULL) {
         t->wait_lock = lock;
+
+		/*-- Priority CondVar 과제 --*/
 		list_insert_ordered(&lock->holder->donations, &t->donation_elem, donation_priority_cmp, NULL);
+		/*-- Priority CondVar 과제 --*/
+
         donate_priority();
     }
 	/*-- Priority donation 과제 --*/
 
 	sema_down (&lock->semaphore);
-	// lock->holder = thread_current ();
 
 	/*-- Priority donation 과제 --*/
 	t->wait_lock = NULL;
@@ -271,39 +331,6 @@ lock_held_by_current_thread (const struct lock *lock) {
 
 	return lock->holder == thread_current ();
 }
-
-/* One semaphore in a list. */
-struct semaphore_elem {
-	struct list_elem elem;              /* List element. */
-	struct semaphore semaphore;         /* This semaphore. */
-};
-
-
-// 두 sema의 'waiters list내 스레드 중 제일 높은 priority'를 비교
-// a가 높으면 true, b가 높으면 false.
-bool sema_priority_cmp(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
-{
-	struct semaphore_elem *sema_a = list_entry(a, struct semaphore_elem, elem);
-	struct semaphore_elem *sema_b = list_entry(b, struct semaphore_elem, elem);
-
-	struct list *waiters_a = &(sema_a->semaphore.waiters);
-	struct list *waiters_b = &(sema_b->semaphore.waiters);
-
-	struct thread *root_a = list_entry(list_begin(waiters_a), struct thread, elem);
-	struct thread *root_b = list_entry(list_begin(waiters_b), struct thread, elem);
-
-	return root_a->priority > root_b->priority;
-}
-
-// donation_elem의 priority를 기준으로 비교
-// a가 높으면 true, b가 높으면 false.
-bool donation_priority_cmp(const struct list_elem *a,
-						   const struct list_elem *b, void *aux UNUSED)
-{
-	struct thread *st_a = list_entry(a, struct thread, donation_elem);
-	struct thread *st_b = list_entry(b, struct thread, donation_elem);
-	return st_a->priority > st_b->priority;
-}
 
 
 /* Initializes condition variable COND.  A condition variable
@@ -336,8 +363,11 @@ cond_init (struct condition *cond) {
    interrupt handler.  This function may be called with
    interrupts disabled, but interrupts will be turned back on if
    we need to sleep. */
+// 여기서 struct condition *cond는 특정한 공유 자원과 연결된 컨디션 변수.
 void
 cond_wait (struct condition *cond, struct lock *lock) {
+	// 설명: 컨디션 변수용 세마포어 선언.
+	// 현재 스레드가 사용할 "자기 전용 이진 세마포어".
 	struct semaphore_elem waiter;
 
 	ASSERT (cond != NULL);
@@ -345,11 +375,18 @@ cond_wait (struct condition *cond, struct lock *lock) {
 	ASSERT (!intr_context ());
 	ASSERT (lock_held_by_current_thread (lock));
 
-	sema_init (&waiter.semaphore, 0);
+	// 설명: 컨디션 변수용 세마포어 초기화.
+	// waiter 내부 세마포어 초기화 (초기값 0 → 다른 스레드가 up 해줄 때까지 잠듦)
+	sema_init (&waiter.semaphore, 0); 
+
+	/*-- Priority CondVar 과제 --*/
 	// list_push_back (&cond->waiters, &waiter.elem);
-	list_insert_ordered(&cond->waiters, &waiter.elem, sema_priority_cmp, NULL); // priority condvar 구현
+	// 특정한 공유 자원(&cond)의 리스트(->waiters)에, 이 스레드의 elem을, sema_priority_cmp 순서에 의하여 추가.
+	list_insert_ordered(&cond->waiters, &waiter.elem, sema_priority_cmp, NULL);
+	/*-- Priority CondVar 과제 --*/
+
 	lock_release (lock);
-	sema_down (&waiter.semaphore);
+	sema_down (&waiter.semaphore); // 잠드는 지점은 여기!!!! (+ 스레드가 여기서 block, 스택 메모리 유지됨)
 	lock_acquire (lock);
 }
 
@@ -367,8 +404,12 @@ cond_signal (struct condition *cond, struct lock *lock UNUSED) {
 	ASSERT (!intr_context ());
 	ASSERT (lock_held_by_current_thread (lock));
 
-	if (!list_empty (&cond->waiters)){
-		list_sort(&cond->waiters, sema_priority_cmp, NULL); // priority condvar 구현
+	if (!list_empty (&cond->waiters)){// 즉, 대기 중인 (잠든) 스레드가 존재한다면,
+
+		/*-- Priority CondVar 과제 --*/
+		list_sort(&cond->waiters, sema_priority_cmp, NULL); // 우선순위가 가장 높은 스레드가 들어 있는 세마포어를 찾기 위함
+		/*-- Priority CondVar 과제 --*/
+
 		sema_up (&list_entry (list_pop_front (&cond->waiters),
 					struct semaphore_elem, elem)->semaphore);
 	}
@@ -380,6 +421,7 @@ cond_signal (struct condition *cond, struct lock *lock UNUSED) {
    An interrupt handler cannot acquire a lock, so it does not
    make sense to try to signal a condition variable within an
    interrupt handler. */
+// 이러한 것들은 사용자 코드(혹은 OS 내부의 논리 코드)가 직접 호출해야 함.
 void
 cond_broadcast (struct condition *cond, struct lock *lock) {
 	ASSERT (cond != NULL);
@@ -389,3 +431,24 @@ cond_broadcast (struct condition *cond, struct lock *lock) {
 		cond_signal (cond, lock);
 }
 
+/* `cond_signal` 관련 예시 코드:
+struct condition cond;
+struct lock lock;
+
+void producer(void) {
+    lock_acquire(&lock);
+    produce_item();
+
+    cond_signal(&cond, &lock);  // 소비자 깨움
+    lock_release(&lock);
+}
+
+void consumer(void) {
+    lock_acquire(&lock);
+    while (!has_item()) {
+        cond_wait(&cond, &lock);  // 조건이 충족될 때까지 잠듦
+    }
+    consume_item();
+    lock_release(&lock);
+}
+*/
