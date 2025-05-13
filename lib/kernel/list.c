@@ -299,7 +299,9 @@ list_size (struct list *list) {
 	return cnt;
 }
 
-/* Returns true if LIST is empty, false otherwise. */
+/* Returns true if LIST is empty, false otherwise. 
+   비어있으면 true를 반환 한다. 
+*/
 bool
 list_empty (struct list *list) {
 	return list_begin (list) == list_end (list);

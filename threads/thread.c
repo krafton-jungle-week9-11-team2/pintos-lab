@@ -125,7 +125,7 @@ static uint64_t gdt[3] = { 0, 0x00af9a000000ffff, 0x00cf92000000ffff };
 
 /*
 ===================================================
-             내가 새로 구현해줄 함수
+     <내가 새로 구현해줄 함수 - alarm clock>
     1.void thread_sleep(int64_t ticks) {}
 	=> 실행중인 스레드를 재우기 => 근데 재우는거 큐?
 	2.void thread_awake(int64_t ticks) {}
@@ -135,6 +135,7 @@ static uint64_t gdt[3] = { 0, 0x00af9a000000ffff, 0x00cf92000000ffff };
 	  보고 thread_awake() 호출할지 말지를 결정
 ===================================================
 */
+
 
 int64_t get_next_tick_to_awake(void){
 	return next_tick_to_awake;
@@ -151,7 +152,7 @@ int64_t get_next_tick_to_awake(void){
 void thread_sleep(int64_t ticks){
 /*
 =======================================================================
-    [전체적인 구조 파악 - 손채민의 예상편]
+    [전체적인 구조 파악 - 손채민의 예상편] -alarm clock
 	1.sleep 상황 감지
     2.running => blocked (thread_block)
 	3.sleep_list에 넣기 
@@ -249,7 +250,7 @@ void thread_sleep(int64_t ticks){
 void thread_awake(int64_t ticks){
 /*
 ======================================================================
-    [전체적인 구조 파악-손채민 예상ver.]
+    [전체적인 구조 파악-손채민 예상ver.]-alarm clock
     1.이 함수를 호출하면서 ticks 인자를 전해주기
 	2.sleep_list 내에서 해당 ticks의 값을 가진 스레드들 모두 깨워주기
 	3.깨워준 thread들 모두 반환해주기
@@ -271,7 +272,7 @@ void thread_awake(int64_t ticks){
    //sleep_list의 맨 앞을 *e라는 포인터 변수에 넣어주기
    /*
    ================================================
-   e는 현재 순회중인 struct list_elem *
+        e는 현재 순회중인 struct list_elem *
    ================================================
    */
    while (e!=list_end(&sleep_list)){
@@ -285,6 +286,121 @@ void thread_awake(int64_t ticks){
 	   e=list_next(e);
 	   //그게 아니면 다음 스레드로 검사 넘어가기
    } 
+
+}
+
+/*
+=======================================================================
+   <내가 구현해줄 함수 - priority scheduling> 
+   1.void test_max_priority(void)
+   => 현재 수행중인 스레드와 가장 높은 우선순위의 스레드의 우선순위를 
+      비교하여 스케줄링 해주는 함수
+   2.bool cmp_priority(const struct list_elem *a, const struct list
+     elem *b,void *aux UNUSED)
+   =>인자로 주어진 스레드들의 우선순위를 비교하는 함수
+=======================================================================
+*/
+
+/*
+=======================================================================
+     [내가 생각한 두 함수의 구현 및 구조 파악] - priority scheduling
+
+	 1.다른 함수에서 test_max_priority함수 호출
+	 2.현재 스레드의 priority 참조하기
+	 3.ready_list의 정렬 상태는 우선순위 높은 스레드가 head
+	   우선순위 낮은 스레드가 tail에 있음
+	 4.head에 저장되어 있는 스레드와 현재 스레드를 비교
+	 5.비교를 cmp_priority 함수에서 인자로 넘겨줘서 한다고 생각(if-else로)
+	 6.true 반환? , 즉 현재 실행 스레드 보다 우선 순위가 높은 스레드가 있다
+	 7.true시에 yield를 호출해주기
+	 8.false면 현재 실행 스레드 계속해서 유지
+
+	 [보완 및 누락 포인트]
+	 1.ready_list를 확인하러 갔는데 비어있는 경우 예외 처리 필요함
+	 2.cmp_priority()는 list 정렬용,test_max_priority에서는 
+	 직접 비교가 더 명확하다.
+	 3.intr_context() 체크하기 
+	 =>인터럽트 컨텍스트 안에서는 thread_yield,block,malloc,free 등 금지
+=======================================================================
+*/
+
+void test_max_priority(void){
+	/*
+	============================================
+	현재 수행중인 스레드와 가장 높은 우선순위의
+	스레드의 우선순위를 비교하여 스케줄링 해주는 함수
+
+	ready_list에서 우선 순위가 가장 높은 스레드와
+	현재 스레드의 우선 순위를 비교
+
+	=>현재 스레드의 우선순위가 더 작다면 thread_yield()
+
+	============================================
+	*/
+
+    if(list_empty(&ready_list))
+	  return;  // 비어있으면 그냥 return
+	struct thread *th = list_entry(list_front(&ready_list),struct thread,elem);
+
+    /*
+	============================================================
+	1.list_front(&ready_list) : ready_list의 가장 앞에 있는 요소 반환
+
+    => list 안에는 struct list_elem 이라는 노드 구조체가 저장된다.
+
+	2.list_entry(...) : 리스트 요소를 '실제 스레드 구조체'로 변환
+
+	3.struct thread *th = . . . :그 결과를 th 포인터로 저장하기
+	============================================================
+	*/
+	if(thread_get_priority()< th->priority) 
+	//위에서 생성해준 스레드 구조체의(th) 요소에 접근
+	   thread_yield();
+
+}
+
+bool cmp_priority(const struct list_elem *a,const struct list_elem *b,
+void *aux UNUSED ){
+	
+
+    
+	/*
+	=====================================================================
+	     2개의 스레드를 인자로 받는다.마지막 인자는 보조인자임 
+		 
+		 인자로 주어진 스레드들의 우선순위를 비교하는 함수
+
+		 우선순위 스케줄링에서 핵심 역할을 하는 함수이다.
+
+		 cmp-priority()는 리스트에서 스레드들을 우선순위 기준으로
+		 정렬할 때 사용됨
+
+		 [어디에 쓰이나]
+		 1.list_insert_ordered()
+		 =>ready_list에 스레드를 삽입할 때, 항상 우선순위가 높은 순서로 정렬
+
+		 2.list_sort()
+		 =>이미 있는 리스트를 정렬할 때도 이 함수를 사용한다.
+		 =>예를 들어 condition variable에서 wait_list를 정렬시
+		   또는 cond_signal()에서 가장 우선순위 높은 스레드를 깨우려고 할 때 
+
+	    이 비교 함수가 제대로 동작하지 않으면, 우선순위 스케줄링 전체가 망가짐
+		        why ? 우선순위가 높은 스레드가 뒤에 깔리게 되니까 
+	=====================================================================
+	*/ 
+
+    struct thread* thread_a = list_entry(a,struct thread,elem);
+	struct thread* thread_b = list_entry(b,struct thread,elem);
+
+	//인자로 받은 elem형 노드 구조체를 실제 thread 구조체로 변경
+
+	if(thread_a == NULL || thread_b == NULL)
+	//둘 중 하나라도 NULL 이라면 반환, 오류임
+	   return false;
+
+	return thread_a->priority > thread_b->priority;
+	// 첫번째 스레드의 우선 순위가 높다면 true 반환
+
 
 }
 
@@ -418,21 +534,27 @@ thread_print_stats (void) {
 			idle_ticks, kernel_ticks, user_ticks);
 }
 
-/* Creates a new kernel thread named NAME with the given initial
-   PRIORITY, which executes FUNCTION passing AUX as the argument,
-   and adds it to the ready queue.  Returns the thread identifier
-   for the new thread, or TID_ERROR if creation fails.
+/* 
+==============================================================
+            priority 기본틀 구현 수정해줘야 할 함수-1
 
-   If thread_start() has been called, then the new thread may be
-   scheduled before thread_create() returns.  It could even exit
-   before thread_create() returns.  Contrariwise, the original
-   thread may run for any amount of time before the new thread is
-   scheduled.  Use a semaphore or some other form of
-   synchronization if you need to ensure ordering.
+ 1.왜 alarm_clock에서는 사용하지 않았을까?
+-alarm_clock 프로젝트에서는 thread_create()를 직접 호출하지 않는다.
+-이미 존재하는 스레드를 "잠자게 하고(sleep), 깨어나게(wake)" 하는 로직만 구현
 
-   The code provided sets the new thread's `priority' member to
-   PRIORITY, but no actual priority scheduling is implemented.
-   Priority scheduling is the goal of Problem 1-3. */
+ 2.이 함수 언제 쓰이나요?
+ -test thread 생성할 때
+ -kernel thread 생성할 때 =>init.c 에서 초기화 루틴 생성할 때
+ -내가 직접 구현해준 함수에서 
+
+ 3.어떤 방향으로 수정해줘야 하는지?
+ => Thread의 unblock 후 ,현재 실행중인 thread와 우선순위를 비교하여,
+    새로 생성된 thread의 우선순위가 높다면 thread_yield()를 통해 양보
+
+
+
+==============================================================
+ */
 tid_t
 thread_create (const char *name, int priority,
 		thread_func *function, void *aux) {
@@ -464,6 +586,20 @@ thread_create (const char *name, int priority,
 	/* Add to run queue. */
 	thread_unblock (t);
 
+	/*
+	===========================================
+	 thread unblock이후 현재 실행중인 스레드와 
+	           우선순위 비교해주기
+		만약 우선순위가 더 높다면 양보해주기
+
+	  CPU 넘겨주기 위한 코드를 추가 구현 해준다.
+	===========================================
+	*/
+	// if(t->priority > thread_current()->priority)
+	//     thread_yield();
+
+	test_max_priority();
+
 	return tid;
 }
 
@@ -481,25 +617,27 @@ thread_block (void) {
 	schedule ();
 }
 
-/* Transitions a blocked thread T to the ready-to-run state.
-   This is an error if T is not blocked.  (Use thread_yield() to
-   make the running thread ready.)
+/* 
+========================================================
+       priority 기본틀 구현 수정해줘야 할 함수-2
 
-   This function does not preempt the running thread.  This can
-   be important: if the caller had disabled interrupts itself,
-   it may expect that it can atomically unblock a thread and
-   update other data. */
+  1.기존 구현
+  =>blocked 상태의 스레드를 ready 상태로 바꿔서
+    ready_list에 추가하는 함수
+========================================================
+*/
 void
 thread_unblock (struct thread *t) {
 	enum intr_level old_level;
 
 	ASSERT (is_thread (t));
 
-	old_level = intr_disable ();
-	ASSERT (t->status == THREAD_BLOCKED);
-	list_push_back (&ready_list, &t->elem);
-	t->status = THREAD_READY;
-	intr_set_level (old_level);
+	old_level = intr_disable (); //인터럽트 비활성화
+	ASSERT (t->status == THREAD_BLOCKED); //블록 상태인지 확인 
+	//list_push_back (&ready_list, &t->elem); //alarm clock.ver
+	list_insert_ordered(&ready_list,&t->elem,cmp_priority,0);
+	t->status = THREAD_READY; //블록 상태에서 ready상태로 갱신
+	intr_set_level (old_level); //인터럽트 상태 복원
 }
 
 /* Returns the name of the running thread. */
@@ -559,20 +697,30 @@ thread_exit (void) {
     2. 인터럽트를 비활성화한 뒤
 	3. 현재 스레드 구조체를 대기 리스트 끝에 배치
 	4. 문맥 전환을 호출하는 방식으로 구현
+
+
+	         priority 기본틀 구현 수정해줘야 할 함수-3
+	1.원래는 양보된다면 그냥 ready_list의 tail에 삽입해주는 함수
+	2.priority를 생각해주도록 바꾼다면 우선순위 순서로 정렬해주고 삽입
+
+
+
 =====================================================================
 */
 
 void
 thread_yield (void) {
-	struct thread *curr = thread_current ();
+	struct thread *curr = thread_current (); //현재 스레드
 	enum intr_level old_level;
 
 	ASSERT (!intr_context ());
 
 	old_level = intr_disable ();
 	if (curr != idle_thread)
-		list_push_back (&ready_list, &curr->elem);
+		//list_push_back (&ready_list, &curr->elem); => alarm clock ver.
+		list_insert_ordered(&ready_list,&curr->elem,cmp_priority,0);
 	do_schedule (THREAD_READY);
+	//schedule();
 	intr_set_level (old_level);
 }
 
@@ -596,6 +744,7 @@ Sets the current thread's priority to NEW_PRIORITY.
 void
 thread_set_priority (int new_priority) {
 	thread_current ()->priority = new_priority;
+	test_max_priority();
 } 
 
 
@@ -716,7 +865,7 @@ next_thread_to_run (void) {
 		return idle_thread;
 	else
 		return list_entry (list_pop_front (&ready_list), struct thread, elem);
-}
+} //priority에서 사용
 
 /* Use iretq to launch the thread */
 void
@@ -836,6 +985,8 @@ static void
 schedule (void) {
 	struct thread *curr = running_thread ();
 	struct thread *next = next_thread_to_run ();
+	struct thread *prev = NULL; //priority 구현하면서 추가함
+	
 
 	ASSERT (intr_get_level () == INTR_OFF);
 	ASSERT (curr->status != THREAD_RUNNING);

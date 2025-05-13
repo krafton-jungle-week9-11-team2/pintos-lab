@@ -91,7 +91,19 @@ struct thread {
 	enum thread_status status;          /* Running, Ready, Blocked */
 	char name[16];                      /* Name (디버깅용). */
 	int priority;                       /* Priority.우선순위 */
-    int64_t wakeup_tick;                /*깨어나야 할 tick 변수 추가 */
+    int64_t wakeup_tick;                
+	/*
+	==================================================
+	깨어나야 할 tick 변수 추가
+	언제 깨어나야 하는지 정보만 기준으로 저장했었음
+	=>priority에서는 priority 정보 저장해줘야함
+
+	아 물론, 이 tick의 크기순으로 sleep_list에 정렬및 삽입
+	해줬었음 근데 혼동하면 안됨
+	=>누가 더 빨리 깨어나야 하나만 고려함
+	===================================================
+	 */
+
 	/* Shared between thread.c and synch.c. */
 	struct list_elem elem;              
 	/*
@@ -148,6 +160,11 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+
+void test_max_priority(void);
+
+bool cmp_priority(const struct list_elem *a,const struct list_elem *b,
+void *aux UNUSED);
 
 void do_iret (struct intr_frame *tf);
 
