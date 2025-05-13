@@ -492,16 +492,19 @@ void refresh_priority(void)  {
         t->priority = max_thread->priority;
 }
 
+/*-- Priority CondVar 과제 --*/
 void 
 thread_yield_when_needed (void) {
-    if (list_empty(&ready_list))
-        return;
-
-    struct thread *thr = list_entry(list_front(&ready_list), struct thread, elem);
-
-    if (thread_get_priority() < thr->priority)
-        thread_yield();
+	if (thread_current() == idle_thread)
+		return;
+	if (list_empty(&ready_list))
+		return;
+	struct thread *curr = thread_current();
+	struct thread *ready = list_entry(list_front(&ready_list), struct thread, elem);
+	if (curr->priority < ready->priority) // ready_list에 현재 실행중인 스레드보다 우선순위가 높은 스레드가 있으면
+		thread_yield();
 }
+/*-- Priority CondVar 과제 --*/
 /*-- Priority donation 과제 --*/
 
 
