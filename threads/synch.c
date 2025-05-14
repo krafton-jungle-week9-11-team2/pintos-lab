@@ -35,6 +35,7 @@
 /* One semaphore in a list. */
 // 현재 스레드가 사용할 "자기 전용 이진 세마포어".
 struct semaphore_elem {
+	// 참고: elem의 멤버는 struct list_elem *prev, *next;
 	struct list_elem elem;              /* List element. */
 	struct semaphore semaphore;         /* This semaphore. */
 };

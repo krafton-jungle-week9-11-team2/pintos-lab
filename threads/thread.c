@@ -496,10 +496,13 @@ void refresh_priority(void)  {
 // 현재 실행 중인 스레드(curr)보다 더 높은 우선순위를 가진 스레드가 ready_list의 가장 앞에 있다면
 // 즉시 CPU를 양보(thread_yield())하도록 만듦.
 void check_and_preempt (void) {
+	// 얼리 리턴
 	if (thread_current() == idle_thread)
 		return;
 	if (list_empty(&ready_list))
 		return;
+
+	// Preempt 들어가야 할지 확인해야 할 경우
 	struct thread *curr = thread_current();
 	struct thread *ready = list_entry(list_front(&ready_list), struct thread, elem);
 
