@@ -95,14 +95,14 @@ sema_init (struct semaphore *sema, unsigned value) {
  * 목적: 전달받은 '세마포어 객체'를 통해
  *       - 자원 카운트를 하나 줄이거나
  *       - 값이 0이면 호출 스레드를 잠재운다.
-   
-// 동작:
-//   sema->value가 양수면 → 1 줄이고 통과
-//   sema->value가 0이면 → 지금 못 씀 → 현재 스레드는 waiters 리스트에 넣고 잠듦
-
- * 세마포어의 용도는 호출자가 어떻게 초기화했느냐에 따라 두 가지:
- *   (1) 자원 카운팅용  (초기값 >= 1) - 이때 struct semaphore *sema는 각 공유 자원 하나를 의미.
- *   (2) 이벤트/신호용  (초기값 0 → 깨울 때 up) - 이때 struct semaphore *sema는 컨디션 변수의 대기용 (이진 세마포어)
+ * 
+ * 동작:
+ *   sema->value가 양수면 → 1 줄이고 통과
+ *   sema->value가 0이면 → 지금 못 씀 → 현재 스레드는 waiters 리스트에 넣고 잠듦
+ * 
+ * 이 함수의 용도는, 호출자가 어떻게 초기화했느냐에 따라 두 가지!!
+ *   (1) 자원 카운트용 (초기값 >= 1) - 이때 struct semaphore *sema는 각 공유 자원 하나를 의미.
+ *   (2) 이벤트/신호용 (초기값 0 → 깨울 때 up) - 이때 struct semaphore *sema는 특정 스레드의 컨디션 변수용 (이진 세마포어)
  * -------------------------------------------------- */
 void
 sema_down (struct semaphore *sema) {
