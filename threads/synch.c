@@ -33,6 +33,28 @@
   락
   조건 변수 등 
   동기화 원시 (정상적인 실행을 위해 동기화가 필요) 가능
+
+
+      Priority Scheduling synchronization
+   
+   [수정해줘야 할 함수들]
+   1.sema_down(struct semaphore *sema)
+   2.sema_up(struct semaphore *sema)
+   3.void cond_wait(struct semaphore *sema)
+   4.void cond_signal(struct condition *cond, struct *cond,struct
+     lock *lock UNUSED)
+
+
+   [내가 생성해줄 함수]
+
+   cmp_sem_priority(const struct list_elem *a,
+   const struct list_elem *b, void *aux UNUSED)
+
+   -첫번째 인자로 주어진 세마포어를 위해 대기 중인 가장
+    높은 우선순위의 스레드와 
+   -두번째 인자로 주어진 세마포어를 위해 
+    대기 중인 가장 높은 우선순위의 스레드와 비교한다. 
+
   ==============================================
   */
 
@@ -76,8 +98,9 @@ sema_down (struct semaphore *sema) {
 
 	old_level = intr_disable ();
 	while (sema->value == 0) {
-		list_push_back (&sema->waiters, &thread_current ()->elem);
-		thread_block ();
+		//list_push_back (&sema->waiters, &thread_current ()->elem);
+		list_insert_ordered(&sema->waiters,&thread_current() ->elem,cmp_priority,0);
+      thread_block ();
 	}
 	sema->value--;
 	intr_set_level (old_level);
@@ -114,14 +137,29 @@ sema_try_down (struct semaphore *sema) {
    This function may be called from an interrupt handler. */
 void
 sema_up (struct semaphore *sema) {
+   /*
+   ===============================================
+              priority - synchronization
+   -wait_list에 있는 쓰레드의 우선순위가 변경되었을 
+    경우 고려해주기 위해 수정 
+
+   -wait_list를 정렬해준다
+
+   -세마포어 해제 후 priority preemption 기능 추가 
+   ===============================================
+
+   */
 	enum intr_level old_level;
 
 	ASSERT (sema != NULL);
 
 	old_level = intr_disable ();
-	if (!list_empty (&sema->waiters))
+
+	if (!list_empty (&sema->waiters)){
+      list_sort(&sema->waiters,cmp_priority,NULL);
 		thread_unblock (list_entry (list_pop_front (&sema->waiters),
 					struct thread, elem));
+   }
 	sema->value++;
 	intr_set_level (old_level);
 }

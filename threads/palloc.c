@@ -24,7 +24,21 @@
 
    By default, half of system RAM is given to the kernel pool and
    half to the user pool.  That should be huge overkill for the
-   kernel pool, but that's just fine for demonstration purposes. */
+   kernel pool, but that's just fine for demonstration purposes. 
+   
+   =============================================================
+       palloc.c는 Pintos에서 1페이지 단위의 메모리를 할당/반환
+	   
+	           1개의 페이지를(4KB) 할당해서 반환
+
+	   [어디서 쓰나?]
+	   1.스레드 생성 (thread_create())
+	   2.사용자 프로세스 생성 (project 2 에서 사용됨)
+	============================================================
+   
+   
+   
+   */
 
 /* A memory pool. */
 struct pool {
