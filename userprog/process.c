@@ -33,6 +33,36 @@ process_init (void) {
 	struct thread *current = thread_current ();
 }
 
+// 자식 리스트에서 원하는 프로세스를 검색하는 함수
+struct thread *get_child_process(int pid)
+{
+	/* 자식 리스트에 접근하여 프로세스 디스크립터 검색 */
+	struct thread *cur = thread_current();
+	struct list *child_list = &cur->child_list;
+	for (struct list_elem *e = list_begin(child_list); e != list_end(child_list); e = list_next(e))
+	{
+		struct thread *t = list_entry(e, struct thread, child_elem);
+		/* 해당 pid가 존재하면 프로세스 디스크립터 반환 */
+		if (t->tid == pid)
+			return t;
+	}
+	/* 리스트에 존재하지 않으면 NULL 리턴 */
+	return NULL;
+}
+
+// 파일 객체를 검색하는 함수
+struct file *process_get_file(int fd)
+{
+	struct thread *curr = thread_current();
+	struct file **fdt = curr->fd_table;
+	/* 파일 디스크립터에 해당하는 파일 객체를 리턴 */
+	/* 없을 시 NULL 리턴 */
+	if (fd < 2 || fd >= FDCOUNT_LIMIT)
+		return NULL;
+	return fdt[fd];
+}
+
+
 /* Starts the first userland program, called "initd", loaded from FILE_NAME.
  * The new thread may be scheduled (and may even exit)
  * before process_create_initd() returns. Returns the initd's
@@ -230,7 +260,7 @@ process_exec (void *f_name) {
     _if.R.rdi = count;
     _if.R.rsi = (char *)_if.rsp + 8;
 
-    hex_dump(_if.rsp, _if.rsp, USER_STACK - (uint64_t)_if.rsp, true); // user stack을 16진수로 프린트
+    hex_dump(_if.rsp, _if.rsp, USER_STACK - (uint64_t)_if.rsp, true); // 디버그용 - 유저 스택 헥스 덤프
     // ~ Argument Passing
 
     /* If load failed, quit. */
@@ -253,16 +283,31 @@ process_exec (void *f_name) {
  *
  * This function will be implemented in problem 2-2.  For now, it
  * does nothing. */
-int
-process_wait (tid_t child_tid UNUSED) {
+int process_wait (tid_t child_tid UNUSED) {
 	/* XXX: Hint) The pintos exit if process_wait (initd), we recommend you
 	 * XXX:       to add infinite loop here before
 	 * XXX:       implementing the process_wait. */
-	for (int i = 0; i < 100000000; i++)  {
-		for (int j = 0; j < 10; j++)  {
-		}
+
+
+
+	// struct thread *cur = thread_current();
+	// struct thread *child = get_child_process(child_tid);
+
+	// if (child == NULL)
+	// 	return -1;
+	
+	// sema_down(&child->wait_sema); 
+	// int exit_status = child->exit_status;
+	// list_remove(&child->child_elem);
+	// sema_up(&child->exit_sema);
+
+	// return exit_status;
+
+	for(int i=0;i<100000000;i++){
+		for (int j=0;j<10;j++);
 	}
-	return -1;	
+
+	return -1;
 }
 
 /* Exit the process. This function is called by thread_exit (). */

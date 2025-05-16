@@ -36,7 +36,6 @@ static struct file *find_file_by_fd(int fd) {
 	}
 	return cur->fd_table[fd];
 }
-
  
 /**
  * add_file_to_fdt - 현재 프로세스의 fd테이블에 파일 추가
@@ -59,6 +58,22 @@ int add_file_to_fdt(struct file *file) {
 	fdt[cur->fd_idx] = file;
 	return cur->fd_idx;
 }
+
+
+/**
+ * seek - 파일을 찾음.
+ * 
+ * @param fd: 파일 디스크립터.
+ * @param position: 위치.
+ */
+void seek(int fd, unsigned position)
+{
+	struct file *file = find_file_by_fd(fd);
+	if (file == NULL)
+		return;
+	file_seek(file, position);
+}
+
 
 /**
  * exit - 해당 프로세스를 종료시킴.
@@ -84,6 +99,35 @@ void halt(void){
 		timer_msleep(2);
     power_off();
 }
+
+
+/**
+ * write - fd에 *buffer로부터 size만큼을 작성.
+ * 
+ */
+int write(int fd, const void *buffer, unsigned size)
+{
+	check_address(buffer);
+	int bytes_write = 0;
+	if (fd == STDOUT_FILENO)
+	{
+		putbuf(buffer, size);
+		bytes_write = size;
+	}
+	else
+	{
+		if (fd < 2)
+			return -1;
+		struct file *file = process_get_file(fd);
+		if (file == NULL)
+			return -1;
+		lock_acquire(&filesys_lock);
+		bytes_write = file_write(file, buffer, size);
+		lock_release(&filesys_lock);
+	}
+	return bytes_write;
+}
+
 
 /**
  * exec - 현재 프로세스를 cmd_line에서 지정된 인수를 전달하여 이름이 지정된 실행 파일로 변경
@@ -231,12 +275,12 @@ void syscall_handler (struct intr_frame *f UNUSED) {
 		// case SYS_READ:
 		// 	f->R.rax = read(f->R.rdi, f->R.rsi, f->R.rdx);
 		// 	break;
-		// case SYS_WRITE:
-		// 	f->R.rax = write(f->R.rdi, f->R.rsi, f->R.rdx);
-		// 	break;
-		// case SYS_SEEK:
-		// 	seek(f->R.rdi, f->R.rsi);
-		// 	break;
+		case SYS_WRITE:
+			f->R.rax = write(f->R.rdi, f->R.rsi, f->R.rdx);
+			break;
+		case SYS_SEEK:
+			seek(f->R.rdi, f->R.rsi);
+			break;
 		// case SYS_TELL:
 		// 	f->R.rax = tell(f->R.rdi);
 		// 	break;
