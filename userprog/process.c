@@ -50,6 +50,9 @@ process_create_initd (const char *file_name) {
 		return TID_ERROR;
 	strlcpy (fn_copy, file_name, PGSIZE);
 
+	char *save_ptr;
+	strtok_r(file_name, " ", &save_ptr);
+	
 	/* Create a new thread to execute FILE_NAME. */
 	tid = thread_create (file_name, PRI_DEFAULT, initd, fn_copy);
 	if (tid == TID_ERROR)
@@ -158,6 +161,40 @@ error:
 	thread_exit ();
 }
 
+void argument_stack(char **argv, int argc, void **rsp) {
+	// Save argument strings (character by character)
+	for (int i = argc - 1; i >= 0; i--) {
+		int argv_len = strlen(argv[i]);
+		for (int j = argv_len; j >= 0; j--) {
+			char argv_char = argv[i][j];
+			(*rsp)--;
+			**(char **)rsp = argv_char; // 1 byte
+		}
+		argv[i] = *(char **)rsp; 		// 리스트에 rsp 주소 넣기
+	}
+
+	// Word-align padding
+	int pad = (int)*rsp % 8;
+	for (int k = 0; k < pad; k++) {
+		(*rsp)--;
+		**(uint8_t **)rsp = 0;
+	}
+
+	// Pointers to the argument strings
+	(*rsp) -= 8;
+	**(char ***)rsp = 0;
+
+	for (int i = argc - 1; i >= 0; i--) {
+		(*rsp) -= 8;
+		**(char ***)rsp = argv[i];
+	}
+
+	// Return address
+	(*rsp) -= 8;
+	**(void ***)rsp = 0;
+}
+
+
 /* Switch the current execution context to the f_name.
  * Returns -1 on fail. */
 int
@@ -176,17 +213,34 @@ process_exec (void *f_name) {
 	/* We first kill the current context */
 	process_cleanup ();
 
+	/*-- Project 2. User Programs 과제 --*/
+	// for argument parsing
+    char *parse[64];
+    char *token, *save_ptr;
+    int count = 0;
+    for (token = strtok_r(file_name, " ", &save_ptr); token != NULL; token = strtok_r(NULL, " ", &save_ptr))
+        parse[count++] = token;
+	/*-- Project 2. User Programs 과제 --*/
+
 	/* And then load the binary */
 	success = load (file_name, &_if);
 
-	/* If load failed, quit. */
-	palloc_free_page (file_name);
-	if (!success)
-		return -1;
+    // Argument Passing ~
+    argument_stack(parse, count, &_if.rsp); // 함수 내부에서 parse와 rsp의 값을 직접 변경하기 위해 주소 전달
+    _if.R.rdi = count;
+    _if.R.rsi = (char *)_if.rsp + 8;
 
-	/* Start switched process. */
-	do_iret (&_if);
-	NOT_REACHED ();
+    hex_dump(_if.rsp, _if.rsp, USER_STACK - (uint64_t)_if.rsp, true); // user stack을 16진수로 프린트
+    // ~ Argument Passing
+
+    /* If load failed, quit. */
+    palloc_free_page(file_name);
+    if (!success)
+        return -1;
+
+    /* Start switched process. */
+    do_iret(&_if);
+    NOT_REACHED();
 }
 
 
@@ -204,7 +258,11 @@ process_wait (tid_t child_tid UNUSED) {
 	/* XXX: Hint) The pintos exit if process_wait (initd), we recommend you
 	 * XXX:       to add infinite loop here before
 	 * XXX:       implementing the process_wait. */
-	return -1;
+	for (int i = 0; i < 100000000; i++)  {
+		for (int j = 0; j < 10; j++)  {
+		}
+	}
+	return -1;	
 }
 
 /* Exit the process. This function is called by thread_exit (). */

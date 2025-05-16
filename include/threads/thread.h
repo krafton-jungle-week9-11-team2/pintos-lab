@@ -5,6 +5,8 @@
 #include <list.h>
 #include <stdint.h>
 #include "threads/interrupt.h"
+#include "threads/synch.h" // Project 2. User Programs 구현
+
 #ifdef VM
 #include "vm/vm.h"
 #endif
@@ -27,6 +29,12 @@ typedef int tid_t;
 #define PRI_MIN 0                       /* Lowest priority. */
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
+
+/*-- Project 2. User Programs 과제. --*/
+// for system call
+#define FDT_PAGES 3                       // pages to allocate for file descriptor tables (thread_create, process_exit)
+#define FDCOUNT_LIMIT FDT_PAGES *(1 << 9) // Limit fdIdx
+/*-- Project 2. User Programs 과제. --*/
 
 /* A kernel thread or user process.
  *
@@ -118,6 +126,23 @@ struct thread {
     struct list donations;
     struct list_elem donation_elem;
 	/*-- Priority donation 과제 --*/
+
+	/*-- Project 2. User Programs 과제 --*/
+	int exit_status;
+	struct file **fd_table;
+	int next_fd;
+    int fd_idx;                     // fd테이블에 open spot의 인덱스
+
+	struct intr_frame parent_if;
+	struct list child_list;
+	struct list_elem child_elem;
+
+	struct semaphore load_sema; // 현재 스레드가 load되는 동안 부모가 기다리게 하기 위한 semaphore
+	struct semaphore exit_sema;
+	struct semaphore wait_sema;
+
+	struct file *running; // 현재 실행중인 파일
+	/*-- Project 2. User Programs 과제 --*/
 };
 
 /* If false (default), use round-robin scheduler.

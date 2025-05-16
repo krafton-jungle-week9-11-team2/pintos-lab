@@ -24,6 +24,158 @@ void syscall_handler (struct intr_frame *);
 #define MSR_LSTAR 0xc0000082        /* Long mode SYSCALL target */
 #define MSR_SYSCALL_MASK 0xc0000084 /* Mask for the eflags */
 
+#define PAL_ZERO 0
+
+
+// fd로 파일 찾는 함수
+static struct file *find_file_by_fd(int fd) {
+	struct thread *cur = thread_current();
+
+	if (fd < 0 || fd >= FDCOUNT_LIMIT) {
+		return NULL;
+	}
+	return cur->fd_table[fd];
+}
+
+ 
+/**
+ * add_file_to_fdt - 현재 프로세스의 fd테이블에 파일 추가
+ * 
+ * @param file: 파일 파라미터
+ */
+int add_file_to_fdt(struct file *file) {
+	struct thread *cur = thread_current();
+	struct file **fdt = cur->fd_table;
+
+	// fd의 위치가 제한 범위를 넘지 않고, fdtable의 인덱스 위치와 일치한다면
+	while (cur->fd_idx < FDCOUNT_LIMIT && fdt[cur->fd_idx]) {
+		cur->fd_idx++;
+	}
+
+	// fdt이 가득 찼다면
+	if (cur->fd_idx >= FDCOUNT_LIMIT)
+		return -1;
+
+	fdt[cur->fd_idx] = file;
+	return cur->fd_idx;
+}
+
+/**
+ * exit - 해당 프로세스를 종료시킴.
+ * 
+ * @param status: 현재 상태를 가져오는 파라미터.
+ */
+void exit(int status) {
+	struct thread *curr = thread_current();
+    curr->exit_status = status;		// 프로그램이 정상적으로 종료되었는지 확인(정상적 종료 시 0)
+
+	printf("%s: exit(%d)\n", thread_name(), status); 	// 디버그: 프로세스가 꺼진다는 Message 출력
+	thread_exit();		// 스레드 종료
+}
+
+/**
+ * halt - 머신을 halt함.
+ * 
+ * 
+ */
+void halt(void){
+	printf("NOW HALTING!\n"); 	// 종료 시 Process Termination Message 출력
+	for(int i=0;i<100000000;i++)
+		timer_msleep(2);
+    power_off();
+}
+
+/**
+ * exec - 현재 프로세스를 cmd_line에서 지정된 인수를 전달하여 이름이 지정된 실행 파일로 변경
+ * 
+ */
+int exec(char *file_name) {
+	check_address(file_name);
+
+	int file_size = strlen(file_name)+1;
+	char *fn_copy = palloc_get_page(PAL_ZERO);
+	if (fn_copy == NULL) {
+		exit(-1);
+	}
+	strlcpy(fn_copy, file_name, file_size);
+
+	if (process_exec(fn_copy) == -1) {
+		return -1;
+	}
+
+	NOT_REACHED();
+	return 0;
+}
+
+/**
+ * 주소값이 유저 영역(0x8048000~0xc0000000)에서 사용하는 주소값인지 확인하는 함수
+ */
+void check_address(const uint64_t *addr){
+	struct thread *cur = thread_current();
+	if (addr == NULL || !(is_user_vaddr(addr)) || pml4_get_page(cur->pml4, addr) == NULL) 
+		exit(-1);
+}
+
+/**
+ * create - 파일을 생성.
+ * 성공일 경우 true, 실패일 경우 false.
+ * 
+ * @param file: 생성할 파일의 이름 및 경로 정보
+ * @param initial_size: 생성할 파일의 크기
+ */
+bool create(const char *file, unsigned initial_size) {		
+	check_address(file);
+	return filesys_create(file, initial_size);
+}
+
+/**
+ * create - 파일을 삭제.
+ * 성공일 경우 true, 실패일 경우 false.
+ * 
+ * @param file: 삭제할 파일의 이름 및 경로 정보
+ * @param initial_size: 생성할 파일의 크기
+ */
+bool remove(const char *file) {	
+	check_address(file);
+	return filesys_remove(file);
+}
+ 
+/**
+ * open - 파일을 오픈.
+ * 성공일 경우 fd, 실패일 경우 -1.
+ * 
+ * @param file: 오픈할 파일의 이름 및 경로 정보
+ */
+int open(const char *file) {
+	check_address(file);
+	struct file *open_file = filesys_open(file);
+
+	if (open_file == NULL) {
+		return -1;
+	}
+
+	int fd = add_file_to_fdt(open_file);
+
+	// fd table 가득 찼다면
+	if (fd == -1) {
+		file_close(open_file);
+	}
+
+	return fd;
+}
+
+
+// 파일의 크기를 알려주는 시스템 콜
+// fd인자를 받아 파일 크기 리턴
+int filesize(int fd) {
+	struct file *open_file = find_file_by_fd(fd);
+	if (open_file == NULL) {
+		return -1;
+	}
+	return file_length(open_file);
+}
+
+
 void
 syscall_init (void) {
 	write_msr(MSR_STAR, ((uint64_t)SEL_UCSEG - 0x10) << 48  |
@@ -38,9 +190,62 @@ syscall_init (void) {
 }
 
 /* The main system call interface */
-void
-syscall_handler (struct intr_frame *f UNUSED) {
+void syscall_handler (struct intr_frame *f UNUSED) {
 	// TODO: Your implementation goes here.
 	printf ("system call!\n");
-	thread_exit ();
+	int syscall_n = (int) f->R.rax; /* 시스템 콜 넘버 */
+
+	/*
+	 x86-64 규약은 함수가 리턴하는 값을 rax 레지스터에 배치하는 것
+	 값을 반환하는 시스템 콜은 intr_frame 구조체의 rax 멤버 수정으로 가능
+	 */
+	printf("%d, %d, %d, %d\n",SYS_HALT, SYS_EXIT, SYS_WAIT, syscall_n);
+	switch (syscall_n) {		//  system call number가 rax에 있음.
+		case SYS_HALT:
+			halt();			// pintos를 종료시키는 시스템 콜
+			break;
+		case SYS_EXIT:
+			exit(f->R.rdi);	// 현재 프로세스를 종료시키는 시스템 콜
+			break;
+		// case SYS_FORK:
+		// 	f->R.rax = fork(f->R.rdi, f);
+		// 	break;
+		case SYS_EXEC:
+			f->R.rax = exec(f->R.rdi);
+       		break;
+		case SYS_WAIT:
+			f->R.rax = process_wait(f->R.rdi);
+			break;
+		case SYS_CREATE:
+			f->R.rax = create(f->R.rdi, f->R.rsi);
+			break;
+		case SYS_REMOVE:
+			f->R.rax = remove(f->R.rdi);
+			break;
+		case SYS_OPEN:
+			f->R.rax = open(f->R.rdi);
+			break;
+		case SYS_FILESIZE:
+			f->R.rax = filesize(f->R.rdi);
+			break;
+		// case SYS_READ:
+		// 	f->R.rax = read(f->R.rdi, f->R.rsi, f->R.rdx);
+		// 	break;
+		// case SYS_WRITE:
+		// 	f->R.rax = write(f->R.rdi, f->R.rsi, f->R.rdx);
+		// 	break;
+		// case SYS_SEEK:
+		// 	seek(f->R.rdi, f->R.rsi);
+		// 	break;
+		// case SYS_TELL:
+		// 	f->R.rax = tell(f->R.rdi);
+		// 	break;
+		// case SYS_CLOSE:
+		// 	close(f->R.rdi);
+		// 	break;
+		default:
+			exit(-1);
+			break;
+	}
+	// thread_exit ();
 }

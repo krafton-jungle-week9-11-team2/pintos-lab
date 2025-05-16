@@ -119,7 +119,7 @@ main (void) {
 	printf ("Boot complete.\n");
 
 	/* Run actions specified on kernel command line. */
-	run_actions (argv);
+	run_actions (argv); // 얘가 커맨드라인 읽음!!!!
 
 	/* Finish up. */
 	if (power_off_when_done)
@@ -239,11 +239,12 @@ static void
 run_task (char **argv) {
 	const char *task = argv[1];
 
-	printf ("Executing '%s':\n", task);
+	printf ("Executing '%s' - '%d':\n", task, thread_tests);
 #ifdef USERPROG
 	if (thread_tests){
 		run_test (task);
 	} else {
+		// printf ("process_wait (process_create_initd '%s':\n", task);
 		process_wait (process_create_initd (task));
 	}
 #else
@@ -344,7 +345,7 @@ power_off (void) {
 
 	print_stats ();
 
-	printf ("Powering off...\n");
+	printf ("This is Gabe! Powering off...\n");
 	outw (0x604, 0x2000);               /* Poweroff command for qemu */
 	for (;;);
 }
