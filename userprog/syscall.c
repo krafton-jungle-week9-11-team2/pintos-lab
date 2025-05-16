@@ -43,20 +43,17 @@ static struct file *find_file_by_fd(int fd) {
  * @param file: 파일 파라미터
  */
 int add_file_to_fdt(struct file *file) {
-	struct thread *cur = thread_current();
-	struct file **fdt = cur->fd_table;
+	struct thread *curr = thread_current();
+	struct file **fdt = curr->fd_table;
 
-	// fd의 위치가 제한 범위를 넘지 않고, fdtable의 인덱스 위치와 일치한다면
-	while (cur->fd_idx < FDCOUNT_LIMIT && fdt[cur->fd_idx]) {
-		cur->fd_idx++;
-	}
-
-	// fdt이 가득 찼다면
-	if (cur->fd_idx >= FDCOUNT_LIMIT)
+	// limit을 넘지 않는 범위 안에서 빈 자리 탐색
+	while (curr->next_fd < FDCOUNT_LIMIT && fdt[curr->next_fd])
+		curr->next_fd++;
+	if (curr->next_fd >= FDCOUNT_LIMIT)
 		return -1;
+	fdt[curr->next_fd] = file;
 
-	fdt[cur->fd_idx] = file;
-	return cur->fd_idx;
+	return curr->next_fd;
 }
 
 
@@ -190,11 +187,12 @@ bool remove(const char *file) {
  * 
  * @param file: 오픈할 파일의 이름 및 경로 정보
  */
-int open(const char *file) {
-	check_address(file);
-	struct file *open_file = filesys_open(file);
+int open(const char *filename) {
+	check_address(filename);
+	struct file *open_file = filesys_open(filename);
 
 	if (open_file == NULL) {
+		printf("Null 포인터 역참조 중!");
 		return -1;
 	}
 
@@ -217,6 +215,41 @@ int filesize(int fd) {
 		return -1;
 	}
 	return file_length(open_file);
+}
+
+int read(int fd, void *buffer, unsigned size){
+    if (size == 0)
+        return 0;
+
+    if (buffer == NULL || !is_user_vaddr(buffer))
+        exit(-1);
+
+	check_address(buffer);
+
+	char *ptr = (char *)buffer;
+	int bytes_read = 0;
+
+	lock_acquire(&filesys_lock);
+	if (fd == STDIN_FILENO)	{
+		for (int i = 0; i < size; i++){
+			*ptr++ = input_getc();
+			bytes_read++;
+		}
+		lock_release(&filesys_lock);
+	}else{
+		if (fd < 2){
+			lock_release(&filesys_lock);
+			return -1;
+		}
+		struct file *file = process_get_file(fd);
+		if (file == NULL){
+			lock_release(&filesys_lock);
+			return -1;
+		}
+		bytes_read = file_read(file, buffer, size);
+		lock_release(&filesys_lock);
+	}
+	return bytes_read;
 }
 
 
@@ -243,7 +276,7 @@ void syscall_handler (struct intr_frame *f UNUSED) {
 	 x86-64 규약은 함수가 리턴하는 값을 rax 레지스터에 배치하는 것
 	 값을 반환하는 시스템 콜은 intr_frame 구조체의 rax 멤버 수정으로 가능
 	 */
-	printf("%d, %d, %d, %d\n",SYS_HALT, SYS_EXIT, SYS_WAIT, syscall_n);
+	printf("%d, %d, %d, %d\n",SYS_HALT, SYS_EXIT, SYS_READ, syscall_n);
 	switch (syscall_n) {		//  system call number가 rax에 있음.
 		case SYS_HALT:
 			halt();			// pintos를 종료시키는 시스템 콜
@@ -272,9 +305,9 @@ void syscall_handler (struct intr_frame *f UNUSED) {
 		case SYS_FILESIZE:
 			f->R.rax = filesize(f->R.rdi);
 			break;
-		// case SYS_READ:
-		// 	f->R.rax = read(f->R.rdi, f->R.rsi, f->R.rdx);
-		// 	break;
+		case SYS_READ:
+			f->R.rax = read(f->R.rdi, f->R.rsi, f->R.rdx);
+			break;
 		case SYS_WRITE:
 			f->R.rax = write(f->R.rdi, f->R.rsi, f->R.rdx);
 			break;
@@ -288,6 +321,7 @@ void syscall_handler (struct intr_frame *f UNUSED) {
 		// 	close(f->R.rdi);
 		// 	break;
 		default:
+			printf("UNDEFINED SYSTEM CALL!, %d", syscall_n);
 			exit(-1);
 			break;
 	}

@@ -232,6 +232,12 @@ thread_create (const char *name, int priority,
 	t->tf.cs = SEL_KCSEG;
 	t->tf.eflags = FLAG_IF;
 
+	// project 2. ~
+	t->fd_table = palloc_get_multiple(PAL_ZERO, FDT_PAGES);
+	if (t->fd_table == NULL)
+		return TID_ERROR;
+	// ~ project 2.
+
 	/* Add to run queue. */
 	thread_unblock (t);
 	if(t->priority > thread_current()->priority)
