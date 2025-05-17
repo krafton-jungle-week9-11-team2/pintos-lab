@@ -260,7 +260,7 @@ process_exec (void *f_name) {
     _if.R.rdi = count;
     _if.R.rsi = (char *)_if.rsp + 8;
 
-    hex_dump(_if.rsp, _if.rsp, USER_STACK - (uint64_t)_if.rsp, true); // 디버그용 - 유저 스택 헥스 덤프
+    // hex_dump(_if.rsp, _if.rsp, USER_STACK - (uint64_t)_if.rsp, true); // 디버그용 - 유저 스택 헥스 덤프
     // ~ Argument Passing
 
     /* If load failed, quit. */
@@ -288,8 +288,6 @@ int process_wait (tid_t child_tid UNUSED) {
 	 * XXX:       to add infinite loop here before
 	 * XXX:       implementing the process_wait. */
 
-
-
 	// struct thread *cur = thread_current();
 	// struct thread *child = get_child_process(child_tid);
 
@@ -304,7 +302,7 @@ int process_wait (tid_t child_tid UNUSED) {
 	// return exit_status;
 
 	for(int i=0;i<100000000;i++){
-		for (int j=0;j<100;j++);
+		for (int j=0;j<5;j++);
 	}
 
 	return -1;

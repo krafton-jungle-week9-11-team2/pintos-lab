@@ -1,0 +1,38 @@
+Kernel command line: -q -f put read-normal put sample.txt run read-normal
+0 ~ 9fc00 1
+100000 ~ 13e0000 1
+Pintos booting with: 
+	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
+	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
+Calibrating timer...  209,510,400 loops/s.
+hd0:0: detected 313 sector (156 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
+hd1:0: detected 105 sector (52 kB) disk, model "QEMU HARDDISK", serial "QM00003"
+Formatting file system...done.
+Boot complete.
+Putting 'read-normal' into the file system...
+Putting 'sample.txt' into the file system...
+Executing 'read-normal' - '0':
+(read-normal) begin
+(read-normal) open "sample.txt" for verification
+Page fault at 0x423e038: not present error reading page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=800421eb71
+ cr2=000000000423e038 error=               0
+rax 000000000423e038 rbx 0000000000000000 rcx 0000000000403686 rdx 000000800421eb1b
+rsp 0000008004242ec0 rbp 0000008004242ed0 rsi 0000000000000000 rdi 000000000423e038
+rip 000000800421eb71 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000212 r12 000000800421d2d0 r13 0000000000000000 r14 0000000000000000
+r15 0000000000000000 rflags 00000202
+es: 001b ds: 001b cs: 0008 ss: 0010
+Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x8004217f80 0x800421c8cc 0x800421ca4b 0x8004208f63 0x8004209381 0x800421d0ae 0x800421d41f 0x800421cac0 0x400766 0x400981 0x400111 0x40016f 0x400c10.
+The `backtrace' program can make call stacks useful.
+Read "Backtraces" in the "Debugging Tools" chapter
+of the Pintos documentation for more information.
+Timer: 290 ticks
+Thread: 31 idle ticks, 258 kernel ticks, 1 user ticks
+hd0:0: 0 reads, 0 writes
+hd0:1: 117 reads, 248 writes
+hd1:0: 105 reads, 0 writes
+Console: 1903 characters output
+Keyboard: 0 keys 

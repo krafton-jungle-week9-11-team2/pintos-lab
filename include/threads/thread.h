@@ -130,8 +130,7 @@ struct thread {
 	/*-- Project 2. User Programs 과제 --*/
 	int exit_status;
 	struct file **fd_table;
-	int next_fd;
-    int fd_idx;                     // fd테이블에 open spot의 인덱스
+	int next_fd;// fd테이블에 open spot의 인덱스
 
 	struct intr_frame parent_if;
 	struct list child_list;

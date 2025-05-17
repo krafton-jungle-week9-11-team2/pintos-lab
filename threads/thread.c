@@ -234,6 +234,7 @@ thread_create (const char *name, int priority,
 
 	// project 2. ~
 	t->fd_table = palloc_get_multiple(PAL_ZERO, FDT_PAGES);
+	t->next_fd = 2; // POSIX 규격상 fd 0: stdin, fd 1: stdout; fd 2부터 일반 파일
 	if (t->fd_table == NULL)
 		return TID_ERROR;
 	// ~ project 2.

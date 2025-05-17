@@ -56,7 +56,6 @@ int add_file_to_fdt(struct file *file) {
 	return curr->next_fd;
 }
 
-
 /**
  * seek - 파일을 찾음.
  * 
@@ -70,7 +69,6 @@ void seek(int fd, unsigned position)
 		return;
 	file_seek(file, position);
 }
-
 
 /**
  * exit - 해당 프로세스를 종료시킴.
@@ -188,7 +186,7 @@ bool remove(const char *file) {
  * @param file: 오픈할 파일의 이름 및 경로 정보
  */
 int open(const char *filename) {
-	check_address(filename);
+	check_address(filename); // 이상한 포인터면 즉시 종료
 	struct file *open_file = filesys_open(filename);
 
 	if (open_file == NULL) {
@@ -269,14 +267,14 @@ syscall_init (void) {
 /* The main system call interface */
 void syscall_handler (struct intr_frame *f UNUSED) {
 	// TODO: Your implementation goes here.
-	printf ("system call!\n");
+	// printf ("system call!\n");
 	int syscall_n = (int) f->R.rax; /* 시스템 콜 넘버 */
 
 	/*
 	 x86-64 규약은 함수가 리턴하는 값을 rax 레지스터에 배치하는 것
 	 값을 반환하는 시스템 콜은 intr_frame 구조체의 rax 멤버 수정으로 가능
 	 */
-	printf("%d, %d, %d, %d\n",SYS_HALT, SYS_EXIT, SYS_READ, syscall_n);
+	// printf("%d, %d, %d, %d\n",SYS_HALT, SYS_EXIT, SYS_READ, syscall_n);
 	switch (syscall_n) {		//  system call number가 rax에 있음.
 		case SYS_HALT:
 			halt();			// pintos를 종료시키는 시스템 콜
