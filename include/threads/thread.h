@@ -1,5 +1,6 @@
 #ifndef THREADS_THREAD_H
 #define THREADS_THREAD_H
+#include "threads/synch.h"
 
 #include <debug.h>
 #include <list.h>
@@ -96,8 +97,14 @@ struct thread {
 	struct list_elem elem;              /* List element. */
 
 #ifdef USERPROG
+	/*-- 부모 자식 관련 list와 세마포어 epic1 --*/
+	struct list child_list;         // 자식 프로세스 리스트
+	struct list_elem child_elem;  // 부모의 자식 리스트에서 나를 가리키는 링크
+	struct semaphore wait_sema;   // 자식 종료 대기용 세마포어
+	int exit_status;              // 자식의 종료 코드
 	/* Owned by userprog/process.c. */
 	uint64_t *pml4;                     /* Page map level 4 */
+	bool is_initd; //이 스레드(프로세스)가 init 프로세스인지를 알려주는 bool 멤버
 #endif
 #ifdef VM
 	/* Table for whole virtual memory owned by thread. */
@@ -118,6 +125,8 @@ struct thread {
     struct list donations;
     struct list_elem donation_elem;
 	/*-- Priority donation 과제 --*/
+
+
 };
 
 /* If false (default), use round-robin scheduler.

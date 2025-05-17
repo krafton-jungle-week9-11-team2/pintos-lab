@@ -201,10 +201,12 @@ process_exec (void *f_name) {
  * does nothing. */
 int
 process_wait (tid_t child_tid UNUSED) {
-	/* XXX: Hint) The pintos exit if process_wait (initd), we recommend you
-	 * XXX:       to add infinite loop here before
-	 * XXX:       implementing the process_wait. */
-	return -1;
+   for(int i=0;i<10000000;i++){
+        for (int j=0;j<11;j++);
+    }
+
+    return -1;
+	
 }
 
 /* Exit the process. This function is called by thread_exit (). */

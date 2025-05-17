@@ -1,6 +1,6 @@
 #ifndef __LIB_SYSCALL_NR_H
 #define __LIB_SYSCALL_NR_H
-
+// 이거 0번부터 순서대로 할당되고 있는거임.
 /* System call numbers. */
 enum {
 	/* Projects 2 and later. */
