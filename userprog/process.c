@@ -30,7 +30,7 @@ static void __do_fork (void *);
 /* General process initializer for initd and other process. */
 static void
 process_init (void) {
-	struct thread *current = thread_current ();
+	struct thread *current = thread_current ();	
 }
 
 /* Starts the first userland program, called "initd", loaded from FILE_NAME.
@@ -157,54 +157,109 @@ __do_fork (void *aux) {
 error:
 	thread_exit ();
 }
+int process_wait (tid_t child_tid UNUSED) {
+    for(int i=0;i<1000000000;i++){
+        int data=1;
+    }
+
+    return -1;
+}
+void
+argument_stack(char *argv[], int argc, struct intr_frame *_if) {
+    void *rsp = (void*) _if->rsp;
+    char *argv_addr[64];
+
+    // 1) argument strings
+    for (int i = argc - 1; i >= 0; i--) {
+        size_t len = strlen(argv[i]) + 1;
+        rsp = (uint8_t*)rsp - len;
+        memcpy(rsp, argv[i], len);
+        argv_addr[i] = rsp;
+    }
+
+    // 2) align to 8 bytes
+    while ((uintptr_t)rsp % 8 != 0)
+        rsp = (uint8_t*)rsp - 1, *(uint8_t*)rsp = 0;
+
+    // 3) null sentinel (argv[argc] = NULL)
+    rsp = (uint8_t*)rsp - sizeof(char *);
+    *(char **)rsp = NULL;
+
+    // 4) push argv pointers
+    for (int i = argc - 1; i >= 0; i--) {
+        rsp = (uint8_t*)rsp - sizeof(char *);
+        *(char **)rsp = argv_addr[i];
+    }
+
+    // 5) push argv (pointer to argv[0])
+    char **argv0_ptr = (char **)rsp;
+    rsp = (uint8_t*)rsp - sizeof(char **);
+    *(char ***)rsp = argv0_ptr;
+
+    // 6) push argc
+    rsp = (uint8_t*)rsp - sizeof(int);
+    *(int *)rsp = argc;
+
+    // 7) fake return address
+    rsp = (uint8_t*)rsp - sizeof(void *);
+    *(void **)rsp = NULL;
+
+    // 8) update intr_frame rsp and registers
+    _if->rsp = (uint64_t) rsp;
+    _if->R.rdi = argc;
+    _if->R.rsi = argv0_ptr;
+}
 
 /* Switch the current execution context to the f_name.
  * Returns -1 on fail. */
 int
-process_exec (void *f_name) {
-	char *file_name = f_name;
-	bool success;
+process_exec (void *f_name_) {
+    char *f_copy, *fn_copy, *save_ptr;
+    char *argv[64];
+    int argc = 0;
+    bool success;
+    struct intr_frame _if;
 
-	/* We cannot use the intr_frame in the thread structure.
-	 * This is because when current thread rescheduled,
-	 * it stores the execution information to the member. */
-	struct intr_frame _if;
-	_if.ds = _if.es = _if.ss = SEL_UDSEG;
-	_if.cs = SEL_UCSEG;
-	_if.eflags = FLAG_IF | FLAG_MBS;
+    // 1) f_name_ 원본을 두 개로 복사
+    f_copy = palloc_get_page (0);
+    fn_copy = palloc_get_page (0);
+    if (!f_copy || !fn_copy)
+      return -1;
+    strlcpy (f_copy, f_name_, PGSIZE);   // "halt" 또는 "echo x y"
+    strlcpy (fn_copy, f_name_, PGSIZE);  // 인자 파싱용 복사
 
-	/* We first kill the current context */
-	process_cleanup ();
+    // 2) fn_copy 로 토큰 파싱: argv[0] ~ argv[argc-1]
+    for (char *token = strtok_r(fn_copy, " ", &save_ptr);
+         token != NULL;
+         token = strtok_r(NULL, " ", &save_ptr))
+      argv[argc++] = token;
 
-	/* And then load the binary */
-	success = load (file_name, &_if);
+    // intr_frame 기본 설정
+    _if.ds = _if.es = _if.ss = SEL_UDSEG;
+    _if.cs = SEL_UCSEG;
+    _if.eflags = FLAG_IF | FLAG_MBS;
 
-	/* If load failed, quit. */
-	palloc_free_page (file_name);
-	if (!success)
-		return -1;
+    // 3) 현재 프로세스 컨텍스트 제거
+    process_cleanup ();
 
-	/* Start switched process. */
-	do_iret (&_if);
-	NOT_REACHED ();
-}
+    // 4) load 에는 argv[0] (파싱된 프로그램 이름)만 넘김!
+    success = load (argv[0], &_if);
+    if (!success) {
+      palloc_free_page (f_copy);
+      palloc_free_page (fn_copy);
+      return -1;
+    }
 
+    // 5) 스택에 인자들 쌓기
+    argument_stack (argv, argc, &_if);
 
-/* Waits for thread TID to die and returns its exit status.  If
- * it was terminated by the kernel (i.e. killed due to an
- * exception), returns -1.  If TID is invalid or if it was not a
- * child of the calling process, or if process_wait() has already
- * been successfully called for the given TID, returns -1
- * immediately, without waiting.
- *
- * This function will be implemented in problem 2-2.  For now, it
- * does nothing. */
-int
-process_wait (tid_t child_tid UNUSED) {
-	/* XXX: Hint) The pintos exit if process_wait (initd), we recommend you
-	 * XXX:       to add infinite loop here before
-	 * XXX:       implementing the process_wait. */
-	return -1;
+    // 6) 복사 버퍼 해제
+    palloc_free_page (f_copy);
+    palloc_free_page (fn_copy);
+
+    // 7) 사용자 프로세스로 진입
+    do_iret (&_if);
+    NOT_REACHED ();
 }
 
 /* Exit the process. This function is called by thread_exit (). */
@@ -215,7 +270,7 @@ process_exit (void) {
 	 * TODO: Implement process termination message (see
 	 * TODO: project2/process_termination.html).
 	 * TODO: We recommend you to implement process resource cleanup here. */
-
+	
 	process_cleanup ();
 }
 

@@ -10,7 +10,7 @@
 
 void syscall_entry (void);
 void syscall_handler (struct intr_frame *);
-
+static int write(int fd, const void *buffer, unsigned size);
 /* System call.
  *
  * Previously system call services was handled by the interrupt handler
@@ -41,6 +41,51 @@ syscall_init (void) {
 void
 syscall_handler (struct intr_frame *f UNUSED) {
 	// TODO: Your implementation goes here.
-	printf ("system call!\n");
-	thread_exit ();
+	/** project2-System Call */
+int sys_number = f->R.rax;
+
+    // Argument 순서
+    // %rdi %rsi %rdx %r10 %r8 %r9
+
+    switch (sys_number) {
+        case SYS_HALT:
+            halt();
+            break;
+        case SYS_EXIT:
+            exit(f->R.rdi);
+            break;
+        case SYS_WRITE:
+            write(f->R.rdi, f-> R.rsi, f -> R.rdx);
+            break;
+        default:
+            exit(-1);
+    }
+}
+void 
+check_address (void *addr)
+{
+    if (is_kernel_vaddr(addr) || addr == NULL || pml4_get_page(thread_current()->pml4, addr) == NULL)
+        exit(-1);
+}
+void 
+halt(void) 
+{
+    power_off();
+}
+void 
+exit(int status) 
+{
+    struct thread *t = thread_current();
+    t->exit_status = status;
+    printf("%s: exit(%d)\n", t->name, t->exit_status); // Process Termination Message
+    thread_exit();
+}
+static int write(int fd, const void *buffer, unsigned size)
+{
+	if (fd == 1)
+	{
+		putbuf(buffer, size);
+		return size;
+	}
+	return -1;
 }
