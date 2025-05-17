@@ -1,7 +1,23 @@
 #ifndef __LIB_SYSCALL_NR_H
 #define __LIB_SYSCALL_NR_H
 
-/* System call numbers. */
+/* 
+======================================================================
+             System call numbers. 
+
+ -열거형 (enum)으로 선언된 상수들은 0,1,2 .. 순으로 자동 지정
+ -각 번호는 하나의 시스템 콜을 의미 
+ -이 번호를 기반으로 syscall_handler()는 해당 기능을 디스패치만 하고
+  실제 기능은 sys_write,sys_open 등의 별도의 함수에 구현됨
+
+ [각 프로젝트별 구현 범위 정리]
+ -SYS_HALT ~ SYS_CLOSE (Project 2) => 기본적인 파일, 프로세스, I/O
+ -SYS_MMAP ~ SYS_CLOSE (Project 3) => 메모리 매핑
+ -SYS_CHDIR ~ SYS_SYMLINK (Project 4) => 파일 시스템 관련 고급 기능
+======================================================================
+
+
+*/
 enum {
 	/* Projects 2 and later. */
 	SYS_HALT,                   /* Halt the operating system. */

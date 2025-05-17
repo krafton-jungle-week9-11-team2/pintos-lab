@@ -119,7 +119,7 @@ main (void) {
 	printf ("Boot complete.\n");
 
 	/* Run actions specified on kernel command line. */
-	run_actions (argv);
+	run_actions (argv); //
 
 	/* Finish up. */
 	if (power_off_when_done)
@@ -254,6 +254,10 @@ run_task (char **argv) {
 
 /* Executes all of the actions specified in ARGV[]
    up to the null pointer sentinel. */
+
+
+//main 함수안에서 가장 먼저 실행 
+
 static void
 run_actions (char **argv) {
 	/* An action. */

@@ -6,6 +6,21 @@
 #include "threads/vaddr.h"
 #include "intrinsic.h"
 
+
+/*
+=============================================
+
+        x86-64는 segmented 아키텍쳐
+Global Descriptor Table는 
+사용중인 세그먼트들을 알려주는 표
+gdt.c , gdt.h 파일들은 GDT를 셋업 한다.
+
+이 파일들을 수정할 필요는 없다.
+
+
+=============================================
+*/
+
 /* The Global Descriptor Table (GDT).
  *
  * The GDT, an x86-64 specific structure, defines segments that can

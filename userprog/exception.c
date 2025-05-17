@@ -6,7 +6,30 @@
 #include "threads/thread.h"
 #include "intrinsic.h"
 
-/* Number of page faults processed. */
+/* 
+===============================================
+[exception.c , exception.h]
+
+유저 프로그램이 
+특별한 접근 권한을 필요로 하거나
+금지된 연산을 수행할 때
+이는 exception 또는 fault로 커널 내로 트랩
+
+현재 초안 함수는 모든 예외사항들은 메세지를 출력후
+프로세스를 끝내고 있다.
+
+project-2에 대한 일부 해결책은 이 파일 내에 있는
+page-fault() 를 수정하는 것이다.
+
+응용프로그램이 시스템 콜을 호출하면 하드웨어는 
+"트랩 핸들러"를 실행하여 하드웨어 특권 수준을 
+ 커널모드로 격상시킨다.
+
+=>커널 모드에서는 운영체제는 시스템 하드웨어를 
+  자유롭게 접근 가능 !
+
+===============================================
+*/
 static long long page_fault_cnt;
 
 static void kill (struct intr_frame *);
