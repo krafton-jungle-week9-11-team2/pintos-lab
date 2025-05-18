@@ -15,13 +15,14 @@ Putting 'child-syn-wrt' into the file system...
 Executing 'syn-write' - '0':
 (syn-write) begin
 (syn-write) create "stuff"
+UNDEFINED SYSTEM CALL!, 2syn-write: exit(-1)
 Execution of 'syn-write' complete.
-Timer: 306 ticks
-Thread: 36 idle ticks, 270 kernel ticks, 0 user ticks
+Timer: 963 ticks
+Thread: 33 idle ticks, 930 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 112 reads, 499 writes
+hd0:1: 132 reads, 512 writes
 hd1:0: 226 reads, 0 writes
-Console: 908 characters output
+Console: 953 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

@@ -13,13 +13,16 @@ Boot complete.
 Putting 'create-empty' into the file system...
 Executing 'create-empty' - '0':
 (create-empty) begin
+(create-empty) create(""): 0
+(create-empty) end
+create-empty: exit(0)
 Execution of 'create-empty' complete.
-Timer: 305 ticks
-Thread: 33 idle ticks, 272 kernel ticks, 0 user ticks
+Timer: 972 ticks
+Thread: 34 idle ticks, 939 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 83 reads, 245 writes
+hd0:1: 84 reads, 250 writes
 hd1:0: 103 reads, 0 writes
-Console: 831 characters output
+Console: 901 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

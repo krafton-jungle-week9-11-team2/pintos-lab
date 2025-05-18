@@ -14,12 +14,12 @@ Putting 'wait-bad-pid' into the file system...
 Executing 'wait-bad-pid' - '0':
 (wait-bad-pid) begin
 Execution of 'wait-bad-pid' complete.
-Timer: 368 ticks
-Thread: 30 idle ticks, 274 kernel ticks, 64 user ticks
+Timer: 1697 ticks
+Thread: 32 idle ticks, 938 kernel ticks, 728 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 80 reads, 232 writes
 hd1:0: 102 reads, 0 writes
-Console: 832 characters output
+Console: 834 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

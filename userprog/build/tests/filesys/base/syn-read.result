@@ -1,59 +1,18 @@
 FAIL
-Test output failed to match any acceptable form.
-
-Acceptable output:
-  (syn-read) begin
-  (syn-read) create "data"
-  (syn-read) open "data"
-  (syn-read) write "data"
-  (syn-read) close "data"
-  (syn-read) exec child 1 of 10: "child-syn-read 0"
-  (syn-read) exec child 2 of 10: "child-syn-read 1"
-  (syn-read) exec child 3 of 10: "child-syn-read 2"
-  (syn-read) exec child 4 of 10: "child-syn-read 3"
-  (syn-read) exec child 5 of 10: "child-syn-read 4"
-  (syn-read) exec child 6 of 10: "child-syn-read 5"
-  (syn-read) exec child 7 of 10: "child-syn-read 6"
-  (syn-read) exec child 8 of 10: "child-syn-read 7"
-  (syn-read) exec child 9 of 10: "child-syn-read 8"
-  (syn-read) exec child 10 of 10: "child-syn-read 9"
-  (syn-read) wait for child 1 of 10 returned 0 (expected 0)
-  (syn-read) wait for child 2 of 10 returned 1 (expected 1)
-  (syn-read) wait for child 3 of 10 returned 2 (expected 2)
-  (syn-read) wait for child 4 of 10 returned 3 (expected 3)
-  (syn-read) wait for child 5 of 10 returned 4 (expected 4)
-  (syn-read) wait for child 6 of 10 returned 5 (expected 5)
-  (syn-read) wait for child 7 of 10 returned 6 (expected 6)
-  (syn-read) wait for child 8 of 10 returned 7 (expected 7)
-  (syn-read) wait for child 9 of 10 returned 8 (expected 8)
-  (syn-read) wait for child 10 of 10 returned 9 (expected 9)
-  (syn-read) end
-Differences in `diff -u' format:
-  (syn-read) begin
-  (syn-read) create "data"
-- (syn-read) open "data"
-- (syn-read) write "data"
-- (syn-read) close "data"
-- (syn-read) exec child 1 of 10: "child-syn-read 0"
-- (syn-read) exec child 2 of 10: "child-syn-read 1"
-- (syn-read) exec child 3 of 10: "child-syn-read 2"
-- (syn-read) exec child 4 of 10: "child-syn-read 3"
-- (syn-read) exec child 5 of 10: "child-syn-read 4"
-- (syn-read) exec child 6 of 10: "child-syn-read 5"
-- (syn-read) exec child 7 of 10: "child-syn-read 6"
-- (syn-read) exec child 8 of 10: "child-syn-read 7"
-- (syn-read) exec child 9 of 10: "child-syn-read 8"
-- (syn-read) exec child 10 of 10: "child-syn-read 9"
-- (syn-read) wait for child 1 of 10 returned 0 (expected 0)
-- (syn-read) wait for child 2 of 10 returned 1 (expected 1)
-- (syn-read) wait for child 3 of 10 returned 2 (expected 2)
-- (syn-read) wait for child 4 of 10 returned 3 (expected 3)
-- (syn-read) wait for child 5 of 10 returned 4 (expected 4)
-- (syn-read) wait for child 6 of 10 returned 5 (expected 5)
-- (syn-read) wait for child 7 of 10 returned 6 (expected 6)
-- (syn-read) wait for child 8 of 10 returned 7 (expected 7)
-- (syn-read) wait for child 9 of 10 returned 8 (expected 8)
-- (syn-read) wait for child 10 of 10 returned 9 (expected 9)
-- (syn-read) end
-
-(Process exit codes are excluded for matching purposes.)
+Kernel panic in run: PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x8004217f80 0x800421c8cc 0x800421ca4b 0x8004208f63 0x8004209381 0x80042192fc 0x800420a095 0x800420a59f 0x800421cd64 0x800421d43a 0x800421cac0 0x400225 0x400fa7 0x400ff0
+Translation of call stack:
+0x0000008004217f80: debug_panic (lib/kernel/debug.c:32)
+0x000000800421c8cc: kill (userprog/exception.c:103)
+0x000000800421ca4b: page_fault (userprog/exception.c:159 (discriminator 12))
+0x0000008004208f63: intr_handler (threads/interrupt.c:352)
+0x0000008004209381: intr_entry (threads/intr-stubs.o:?)
+0x00000080042192fc: list_insert_ordered (lib/kernel/list.c:428)
+0x000000800420a095: sema_down (threads/synch.c:122)
+0x000000800420a59f: lock_acquire (threads/synch.c:282)
+0x000000800421cd64: write (userprog/syscall.c:120)
+0x000000800421d43a: syscall_handler (userprog/syscall.c:310)
+0x000000800421cac0: no_sti (userprog/syscall-entry.o:?)
+0x0000000000400225: (unknown)
+0x0000000000400fa7: (unknown)
+0x0000000000400ff0: (unknown)

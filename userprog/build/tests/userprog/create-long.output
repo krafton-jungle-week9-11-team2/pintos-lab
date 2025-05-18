@@ -13,13 +13,16 @@ Boot complete.
 Putting 'create-long' into the file system...
 Executing 'create-long' - '0':
 (create-long) begin
+(create-long) create("x..."): 0
+(create-long) end
+create-long: exit(0)
 Execution of 'create-long' complete.
-Timer: 300 ticks
-Thread: 32 idle ticks, 268 kernel ticks, 0 user ticks
+Timer: 985 ticks
+Thread: 30 idle ticks, 955 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 83 reads, 245 writes
+hd0:1: 84 reads, 250 writes
 hd1:0: 103 reads, 0 writes
-Console: 825 characters output
+Console: 896 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

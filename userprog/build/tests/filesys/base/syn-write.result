@@ -53,5 +53,6 @@ Differences in `diff -u' format:
 - (syn-write) open "stuff"
 - (syn-write) read "stuff"
 - (syn-write) end
++ UNDEFINED SYSTEM CALL!, 2syn-write: exit(-1)
 
 (Process exit codes are excluded for matching purposes.)

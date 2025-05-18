@@ -14,13 +14,27 @@ Putting 'syn-remove' into the file system...
 Executing 'syn-remove' - '0':
 (syn-remove) begin
 (syn-remove) create "deleteme"
-Execution of 'syn-remove' complete.
-Timer: 304 ticks
-Thread: 32 idle ticks, 272 kernel ticks, 0 user ticks
+(syn-remove) open "deleteme"
+(syn-remove) remove "deleteme"
+(syn-remove) write "deleteme"
+Page fault at 0xfffffffffffffff8: not present error reading page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=8004206a59
+ cr2=fffffffffffffff8 error=               0
+rax ffffffffffffffe0 rbx 0000000000000000 rcx 0000008004242020 rdx 000000000000001f
+rsp 0000008004242e08 rbp 0000008004242e30 rsi 0000000000000000 rdi 0000008004242020
+rip 0000008004206a59 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000202 r12 000000800421d26f r13 0000000000000000 r14 0000000000000000
+r15 0000000000000000 rflags 00000082
+es: 001b ds: 001b cs: 0008 ss: 0010
+Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x8004217f80 0x800421c8cc 0x800421ca4b 0x8004208f63 0x8004209381 0x80042192fc 0x800420a095 0x800420a59f 0x800421cd64 0x800421d43a 0x800421cac0 0x40027c 0x40108f 0x4010d8.
+The `backtrace' program can make call stacks useful.
+Read "Backtraces" in the "Debugging Tools" chapter
+of the Pintos documentation for more information.
+Timer: 437 ticks
+Thread: 34 idle ticks, 402 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 85 reads, 256 writes
+hd0:1: 112 reads, 262 writes
 hd1:0: 109 reads, 0 writes
-Console: 850 characters output
-Keyboard: 0 keys pressed
-Exception: 0 page faults
-This is Gabe! Powering off...
+Console: 1940 characters output
+Keyboard: 0 keys 

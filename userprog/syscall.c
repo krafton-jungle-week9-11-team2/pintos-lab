@@ -89,9 +89,9 @@ void exit(int status) {
  * 
  */
 void halt(void){
-	printf("NOW HALTING!\n"); 	// 종료 시 Process Termination Message 출력
-	for(int i=0;i<100000000;i++)
-		timer_msleep(2);
+	// printf("NOW HALTING!\n"); 	// 종료 시 Process Termination Message 출력
+	// for(int i=0;i<100000000;i++)
+	// 	timer_msleep(2);
     power_off();
 }
 
@@ -190,7 +190,7 @@ int open(const char *filename) {
 	struct file *open_file = filesys_open(filename);
 
 	if (open_file == NULL) {
-		printf("Null 포인터 역참조 중!");
+		// printf("Null 포인터 역참조 중!");
 		return -1;
 	}
 

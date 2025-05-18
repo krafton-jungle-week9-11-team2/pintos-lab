@@ -18,8 +18,8 @@ Executing 'read-zero' - '0':
 (read-zero) end
 read-zero: exit(0)
 Execution of 'read-zero' complete.
-Timer: 308 ticks
-Thread: 32 idle ticks, 277 kernel ticks, 0 user ticks
+Timer: 966 ticks
+Thread: 32 idle ticks, 934 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 111 reads, 248 writes
 hd1:0: 105 reads, 0 writes

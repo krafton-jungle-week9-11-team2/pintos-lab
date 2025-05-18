@@ -14,13 +14,19 @@ Putting 'create-exists' into the file system...
 Executing 'create-exists' - '0':
 (create-exists) begin
 (create-exists) create quux.dat
+(create-exists) create warble.dat
+(create-exists) try to re-create quux.dat
+(create-exists) create baffle.dat
+(create-exists) try to re-create quux.dat
+(create-exists) end
+create-exists: exit(0)
 Execution of 'create-exists' complete.
-Timer: 301 ticks
-Thread: 30 idle ticks, 271 kernel ticks, 0 user ticks
+Timer: 965 ticks
+Thread: 31 idle ticks, 934 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 84 reads, 246 writes
+hd0:1: 163 reads, 304 writes
 hd1:0: 104 reads, 0 writes
-Console: 869 characters output
+Console: 1065 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

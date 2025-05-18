@@ -41,12 +41,12 @@ Executing 'args-many a b c d e f g h i j k l m n o p q r s t u v' - '0':
 (args) end
 args-many: exit(0)
 Execution of 'args-many' complete.
-Timer: 311 ticks
-Thread: 33 idle ticks, 276 kernel ticks, 2 user ticks
+Timer: 1007 ticks
+Thread: 33 idle ticks, 972 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 80 reads, 232 writes
 hd1:0: 102 reads, 0 writes
-Console: 1472 characters output
+Console: 1473 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

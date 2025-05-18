@@ -1,6 +1,6 @@
 FAIL
 Kernel panic in run: PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217f80 0x800421c8cc 0x800421ca4b 0x8004208f63 0x8004209381 0x80042192fc 0x800420a095 0x800420a59f 0x800421d135 0x800421d45d 0x800421cac0 0x400196 0x40046e 0x400f0f
+Call stack: 0x8004217f80 0x800421c8cc 0x800421ca4b 0x8004208f63 0x8004209381 0x80042192fc 0x800420a095 0x800420a59f 0x800421d0d4 0x800421d3fc 0x800421cac0 0x400196 0x40046e 0x400f0f
 Translation of call stack:
 0x0000008004217f80: debug_panic (lib/kernel/debug.c:32)
 0x000000800421c8cc: kill (userprog/exception.c:103)
@@ -10,8 +10,8 @@ Translation of call stack:
 0x00000080042192fc: list_insert_ordered (lib/kernel/list.c:428)
 0x000000800420a095: sema_down (threads/synch.c:122)
 0x000000800420a59f: lock_acquire (threads/synch.c:282)
-0x000000800421d135: read (userprog/syscall.c:231)
-0x000000800421d45d: syscall_handler (userprog/syscall.c:307)
+0x000000800421d0d4: read (userprog/syscall.c:231)
+0x000000800421d3fc: syscall_handler (userprog/syscall.c:307)
 0x000000800421cac0: no_sti (userprog/syscall-entry.o:?)
 0x0000000000400196: (unknown)
 0x000000000040046e: (unknown)

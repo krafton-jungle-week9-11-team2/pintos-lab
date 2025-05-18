@@ -15,8 +15,8 @@ Executing 'fork-multiple' - '0':
 (fork-multiple) begin
 UNDEFINED SYSTEM CALL!, 2fork-multiple: exit(-1)
 Execution of 'fork-multiple' complete.
-Timer: 305 ticks
-Thread: 31 idle ticks, 274 kernel ticks, 0 user ticks
+Timer: 966 ticks
+Thread: 32 idle ticks, 934 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 87 reads, 236 writes
 hd1:0: 104 reads, 0 writes

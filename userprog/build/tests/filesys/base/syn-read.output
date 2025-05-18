@@ -15,13 +15,26 @@ Putting 'child-syn-read' into the file system...
 Executing 'syn-read' - '0':
 (syn-read) begin
 (syn-read) create "data"
-Execution of 'syn-read' complete.
-Timer: 319 ticks
-Thread: 35 idle ticks, 284 kernel ticks, 0 user ticks
+(syn-read) open "data"
+(syn-read) write "data"
+Page fault at 0xfffffffffffffff8: not present error reading page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=8004206a59
+ cr2=fffffffffffffff8 error=               0
+rax ffffffffffffffe0 rbx 0000000000000000 rcx 0000008004242020 rdx 000000000000001f
+rsp 0000008004242e08 rbp 0000008004242e30 rsi 0000000000000000 rdi 0000008004242020
+rip 0000008004206a59 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000206 r12 000000800421d26f r13 0000000000000000 r14 0000000000000000
+r15 0000000000000000 rflags 00000082
+es: 001b ds: 001b cs: 0008 ss: 0010
+Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x8004217f80 0x800421c8cc 0x800421ca4b 0x8004208f63 0x8004209381 0x80042192fc 0x800420a095 0x800420a59f 0x800421cd64 0x800421d43a 0x800421cac0 0x400225 0x400fa7 0x400ff0.
+The `backtrace' program can make call stacks useful.
+Read "Backtraces" in the "Debugging Tools" chapter
+of the Pintos documentation for more information.
+Timer: 425 ticks
+Thread: 33 idle ticks, 391 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 112 reads, 501 writes
+hd0:1: 137 reads, 502 writes
 hd1:0: 225 reads, 0 writes
-Console: 902 characters output
-Keyboard: 0 keys pressed
-Exception: 0 page faults
-This is Gabe! Powering off...
+Console: 1950 characters output
+Keyboard: 0 keys 

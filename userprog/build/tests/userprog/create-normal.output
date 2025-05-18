@@ -14,13 +14,15 @@ Putting 'create-normal' into the file system...
 Executing 'create-normal' - '0':
 (create-normal) begin
 (create-normal) create quux.dat
+(create-normal) end
+create-normal: exit(0)
 Execution of 'create-normal' complete.
-Timer: 313 ticks
-Thread: 33 idle ticks, 280 kernel ticks, 0 user ticks
+Timer: 1002 ticks
+Thread: 32 idle ticks, 970 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 86 reads, 245 writes
+hd0:1: 102 reads, 246 writes
 hd1:0: 103 reads, 0 writes
-Console: 869 characters output
+Console: 914 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...
