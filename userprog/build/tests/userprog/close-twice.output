@@ -20,8 +20,8 @@ Executing 'close-twice' - '0':
 (close-twice) end
 close-twice: exit(0)
 Execution of 'close-twice' complete.
-Timer: 964 ticks
-Thread: 33 idle ticks, 932 kernel ticks, 0 user ticks
+Timer: 257 ticks
+Thread: 230 idle ticks, 25 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 111 reads, 248 writes
 hd1:0: 105 reads, 0 writes

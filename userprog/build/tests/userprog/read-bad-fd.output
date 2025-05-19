@@ -19,18 +19,18 @@ Interrupt 0x0e (#PF Page-Fault Exception) at rip=8004206a59
 rax ffffffffffffffe0 rbx 0000000000000000 rcx 0000008004241020 rdx 000000000000001f
 rsp 0000008004241df8 rbp 0000008004241e20 rsi 0000000000000000 rdi 0000008004241020
 rip 0000008004206a59 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
-r11 0000000000000202 r12 000000800421d2e7 r13 0000000000000000 r14 0000000000000000
+r11 0000000000000202 r12 000000800421d2d4 r13 0000000000000000 r14 0000000000000000
 r15 0000000000000000 rflags 00000082
 es: 001b ds: 001b cs: 0008 ss: 0010
 Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217f73 0x800421c9b4 0x800421cb33 0x8004208f56 0x8004209374 0x80042192ef 0x800420a088 0x800420a592 0x800421d14c 0x800421d474 0x800421cba8 0x40010d 0x400219 0x400cba.
+Call stack: 0x8004217f73 0x800421c9a1 0x800421cb20 0x8004208f56 0x8004209374 0x80042192ef 0x800420a088 0x800420a592 0x800421d139 0x800421d461 0x800421cb95 0x40010d 0x400219 0x400cba.
 The `backtrace' program can make call stacks useful.
 Read "Backtraces" in the "Debugging Tools" chapter
 of the Pintos documentation for more information.
-Timer: 246 ticks
-Thread: 31 idle ticks, 213 kernel ticks, 2 user ticks
+Timer: 59 ticks
+Thread: 30 idle ticks, 26 kernel ticks, 3 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 80 reads, 234 writes
 hd1:0: 103 reads, 0 writes
-Console: 1823 characters output
+Console: 1821 characters output
 Keyboard: 0 keys 

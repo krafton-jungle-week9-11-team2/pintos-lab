@@ -17,8 +17,8 @@ Executing 'fork-close' - '0':
 (fork-close) open "sample.txt"
 UNDEFINED SYSTEM CALL!, 2fork-close: exit(-1)
 Execution of 'fork-close' complete.
-Timer: 958 ticks
-Thread: 33 idle ticks, 925 kernel ticks, 0 user ticks
+Timer: 257 ticks
+Thread: 230 idle ticks, 26 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 121 reads, 258 writes
 hd1:0: 110 reads, 0 writes

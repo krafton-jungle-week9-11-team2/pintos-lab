@@ -15,8 +15,8 @@ Executing 'multi-oom' - '0':
 (multi-oom) begin
 UNDEFINED SYSTEM CALL!, 2multi-oom: exit(-1)
 Execution of 'multi-oom' complete.
-Timer: 965 ticks
-Thread: 32 idle ticks, 933 kernel ticks, 0 user ticks
+Timer: 255 ticks
+Thread: 229 idle ticks, 24 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 83 reads, 242 writes
 hd1:0: 107 reads, 0 writes

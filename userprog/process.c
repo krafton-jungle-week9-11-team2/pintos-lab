@@ -327,9 +327,7 @@ int process_wait (tid_t child_tid UNUSED) {
 
 	// return exit_status;
 
-	for(int i=0;i<100000000;i++){
-		for (int j=0;j<20;j++);
-	}
+	timer_msleep(2000);
 
 	return -1;
 }

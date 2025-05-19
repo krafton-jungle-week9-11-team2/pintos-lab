@@ -14,13 +14,26 @@ Putting 'lg-random' into the file system...
 Executing 'lg-random' - '0':
 (lg-random) begin
 (lg-random) create "bazzle"
-Execution of 'lg-random' complete.
-Timer: 958 ticks
-Thread: 30 idle ticks, 929 kernel ticks, 0 user ticks
+(lg-random) open "bazzle"
+(lg-random) write "bazzle" in random order
+Page fault at 0x423d040: not present error writing page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=800421ec42
+ cr2=000000000423d040 error=               2
+rax 000000000423d038 rbx 0000000000000000 rcx 0000000000403dc8 rdx 000000000000bc00
+rsp 0000008004241ec0 rbp 0000008004241ed0 rsi 000000000000bc00 rdi 000000000423d038
+rip 000000800421ec42 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000212 r12 000000800421d2d4 r13 0000000000000000 r14 0000000000000000
+r15 0000000000000000 rflags 00000206
+es: 001b ds: 001b cs: 0008 ss: 0010
+Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x8004217f73 0x800421c9a1 0x800421cb20 0x8004208f56 0x8004209374 0x800421cc50 0x800421d4ce 0x800421cb95 0x4002a2 0x401148 0x401191.
+The `backtrace' program can make call stacks useful.
+Read "Backtraces" in the "Debugging Tools" chapter
+of the Pintos documentation for more information.
+Timer: 61 ticks
+Thread: 34 idle ticks, 23 kernel ticks, 4 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 98 reads, 409 writes
+hd0:1: 109 reads, 410 writes
 hd1:0: 110 reads, 0 writes
-Console: 841 characters output
-Keyboard: 0 keys pressed
-Exception: 0 page faults
-This is Gabe! Powering off...
+Console: 1861 characters output
+Keyboard: 0 keys 

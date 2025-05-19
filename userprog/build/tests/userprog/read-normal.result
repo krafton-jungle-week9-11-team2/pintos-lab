@@ -1,15 +1,15 @@
 FAIL
 Kernel panic in run: PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217f73 0x800421c9b4 0x800421cb33 0x8004208f56 0x8004209374 0x800421d0c5 0x800421d436 0x800421cba8 0x400766 0x400981 0x400111 0x40016f 0x400c10
+Call stack: 0x8004217f73 0x800421c9a1 0x800421cb20 0x8004208f56 0x8004209374 0x800421d0b2 0x800421d423 0x800421cb95 0x400766 0x400981 0x400111 0x40016f 0x400c10
 Translation of call stack:
 0x0000008004217f73: debug_panic (lib/kernel/debug.c:32)
-0x000000800421c9b4: kill (userprog/exception.c:103)
-0x000000800421cb33: page_fault (userprog/exception.c:159 (discriminator 12))
+0x000000800421c9a1: kill (userprog/exception.c:103)
+0x000000800421cb20: page_fault (userprog/exception.c:159 (discriminator 12))
 0x0000008004208f56: intr_handler (threads/interrupt.c:352)
 0x0000008004209374: intr_entry (threads/intr-stubs.o:?)
-0x000000800421d0c5: filesize (userprog/syscall.c:222)
-0x000000800421d436: syscall_handler (userprog/syscall.c:310)
-0x000000800421cba8: no_sti (userprog/syscall-entry.o:?)
+0x000000800421d0b2: filesize (userprog/syscall.c:222)
+0x000000800421d423: syscall_handler (userprog/syscall.c:310)
+0x000000800421cb95: no_sti (userprog/syscall-entry.o:?)
 0x0000000000400766: (unknown)
 0x0000000000400981: (unknown)
 0x0000000000400111: (unknown)

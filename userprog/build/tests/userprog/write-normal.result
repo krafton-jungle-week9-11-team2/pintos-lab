@@ -1,18 +1,18 @@
 FAIL
 Kernel panic in run: PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217f73 0x800421c9b4 0x800421cb33 0x8004208f56 0x8004209374 0x80042192ef 0x800420a088 0x800420a592 0x800421cd8e 0x800421d4b2 0x800421cba8 0x4001bd 0x40024c 0x400ced
+Call stack: 0x8004217f73 0x800421c9a1 0x800421cb20 0x8004208f56 0x8004209374 0x80042192ef 0x800420a088 0x800420a592 0x800421cd7b 0x800421d49f 0x800421cb95 0x4001bd 0x40024c 0x400ced
 Translation of call stack:
 0x0000008004217f73: debug_panic (lib/kernel/debug.c:32)
-0x000000800421c9b4: kill (userprog/exception.c:103)
-0x000000800421cb33: page_fault (userprog/exception.c:159 (discriminator 12))
+0x000000800421c9a1: kill (userprog/exception.c:103)
+0x000000800421cb20: page_fault (userprog/exception.c:159 (discriminator 12))
 0x0000008004208f56: intr_handler (threads/interrupt.c:352)
 0x0000008004209374: intr_entry (threads/intr-stubs.o:?)
 0x00000080042192ef: list_insert_ordered (lib/kernel/list.c:428)
 0x000000800420a088: sema_down (threads/synch.c:122)
 0x000000800420a592: lock_acquire (threads/synch.c:282)
-0x000000800421cd8e: write (userprog/syscall.c:120)
-0x000000800421d4b2: syscall_handler (userprog/syscall.c:316)
-0x000000800421cba8: no_sti (userprog/syscall-entry.o:?)
+0x000000800421cd7b: write (userprog/syscall.c:120)
+0x000000800421d49f: syscall_handler (userprog/syscall.c:316)
+0x000000800421cb95: no_sti (userprog/syscall-entry.o:?)
 0x00000000004001bd: (unknown)
 0x000000000040024c: (unknown)
 0x0000000000400ced: (unknown)

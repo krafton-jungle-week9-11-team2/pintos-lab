@@ -100,8 +100,7 @@ void halt(void){
  * write - fd에 *buffer로부터 size만큼을 작성.
  * 
  */
-int write(int fd, const void *buffer, unsigned size)
-{
+int write(int fd, const void *buffer, unsigned size){
 	check_address(buffer);
 	int bytes_write = 0;
 	if (fd == STDOUT_FILENO)

@@ -13,12 +13,12 @@ Boot complete.
 Putting 'halt' into the file system...
 Executing 'halt' - '0':
 (halt) begin
-Timer: 244 ticks
-Thread: 33 idle ticks, 211 kernel ticks, 0 user ticks
+Timer: 57 ticks
+Thread: 31 idle ticks, 25 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 80 reads, 232 writes
 hd1:0: 102 reads, 0 writes
-Console: 753 characters output
+Console: 751 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

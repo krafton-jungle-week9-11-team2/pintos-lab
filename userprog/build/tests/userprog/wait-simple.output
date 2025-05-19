@@ -16,8 +16,8 @@ Executing 'wait-simple' - '0':
 (wait-simple) begin
 UNDEFINED SYSTEM CALL!, 2wait-simple: exit(-1)
 Execution of 'wait-simple' complete.
-Timer: 983 ticks
-Thread: 35 idle ticks, 948 kernel ticks, 0 user ticks
+Timer: 261 ticks
+Thread: 230 idle ticks, 30 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 107 reads, 446 writes
 hd1:0: 204 reads, 0 writes
