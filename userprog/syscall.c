@@ -1,5 +1,6 @@
 #include "filesys/filesys.h"
 #include "userprog/process.h"
+#include "filesys/file.h"
 
 #include "userprog/syscall.h"
 #include <stdio.h>
@@ -234,30 +235,30 @@ int read(int fd, void *buffer, unsigned size){
 
 	check_address(buffer);
 
-	char *ptr = (char *)buffer;
-	int bytes_read = 0;
+    // 2. stdin (fd == 0)
+    if (fd == STDIN_FILENO) {
+        unsigned i;
+        uint8_t *buf = buffer;
+        for (i = 0; i < size; i++) {
+            buf[i] = input_getc();
+        }
+        return i;
+    }
 
-	lock_acquire(&filesys_lock);
-	if (fd == STDIN_FILENO)	{
-		for (int i = 0; i < size; i++){
-			*ptr++ = input_getc();
-			bytes_read++;
-		}
-		lock_release(&filesys_lock);
-	}else{
-		if (fd < 2){
-			lock_release(&filesys_lock);
-			return -1;
-		}
-		struct file *file = process_get_file_by_fd(fd);
-		if (file == NULL){
-			lock_release(&filesys_lock);
-			return -1;
-		}
-		bytes_read = file_read(file, buffer, size);
-		lock_release(&filesys_lock);
-	}
-	return bytes_read;
+    // 3. fd 범위 검사
+    if (fd < 2 || fd >= FDCOUNT_LIMIT)
+        return -1;
+
+    struct file *file = process_get_file_by_fd(fd);
+    if (file == NULL)
+        return -1;
+
+    // 4. 정상 파일이면 read
+    off_t ret;
+    lock_acquire(&filesys_lock);
+    ret = file_read(file, buffer, size);
+    lock_release(&filesys_lock);
+    return ret;
 }
 
 
@@ -272,6 +273,8 @@ syscall_init (void) {
 	 * mode stack. Therefore, we masked the FLAG_FL. */
 	write_msr(MSR_SYSCALL_MASK,
 			FLAG_IF | FLAG_TF | FLAG_DF | FLAG_IOPL | FLAG_AC | FLAG_NT);
+
+	lock_init(&filesys_lock);
 }
 
 /* The main system call interface */

@@ -1,8 +1,10 @@
 #ifndef USERPROG_SYSCALL_H
 #define USERPROG_SYSCALL_H
 
-void syscall_init (void);
 struct lock filesys_lock;
+
+void syscall_init (void);
+
 void seek(int fd, unsigned position);
 void exit(int status) ;
 void halt(void);

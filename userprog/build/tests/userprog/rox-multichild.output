@@ -4,8 +4,8 @@ Kernel command line: -q -f put rox-multichild put child-rox run rox-multichild
 Pintos booting with: 
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
-Calibrating timer...  183,296,000 loops/s.
-hd0:0: detected 321 sector (160 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+Calibrating timer...  209,510,400 loops/s.
+hd0:0: detected 313 sector (156 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 220 sector (110 kB) disk, model "QEMU HARDDISK", serial "QM00003"
 Formatting file system...done.
@@ -16,24 +16,16 @@ Executing 'rox-multichild' - '0':
 (rox-multichild) begin
 (rox-multichild) open "child-rox"
 (rox-multichild) read "child-rox"
-Page fault at 0xfffffffffffffff8: not present error reading page in kernel context.
-Interrupt 0x0e (#PF Page-Fault Exception) at rip=8004206a59
- cr2=fffffffffffffff8 error=               0
-rax ffffffffffffffe0 rbx 0000000000000000 rcx 0000008004242020 rdx 000000000000001f
-rsp 0000008004242df8 rbp 0000008004242e20 rsi 0000000000000000 rdi 0000008004242020
-rip 0000008004206a59 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
-r11 0000000000000202 r12 000000800421d25d r13 0000000000000000 r14 0000000000000000
-r15 0000000000000000 rflags 00000082
-es: 001b ds: 001b cs: 0008 ss: 0010
-Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217f73 0x800421c9a1 0x800421cb20 0x8004208f56 0x8004209374 0x80042192ef 0x800420a088 0x800420a592 0x800421d0c9 0x800421d3e4 0x800421cb95 0x40018b 0x4003c5 0x400e66.
-The `backtrace' program can make call stacks useful.
-Read "Backtraces" in the "Debugging Tools" chapter
-of the Pintos documentation for more information.
-Timer: 65 ticks
-Thread: 36 idle ticks, 26 kernel ticks, 3 user ticks
+(rox-multichild) write "child-rox"
+(rox-multichild) exec "child-rox 5"
+UNDEFINED SYSTEM CALL!, 2rox-multichild: exit(-1)
+Execution of 'rox-multichild' complete.
+Timer: 261 ticks
+Thread: 231 idle ticks, 28 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 112 reads, 478 writes
+hd0:1: 114 reads, 479 writes
 hd1:0: 220 reads, 0 writes
-Console: 1964 characters output
-Keyboard: 0 keys 
+Console: 1092 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+This is Gabe! Powering off...
