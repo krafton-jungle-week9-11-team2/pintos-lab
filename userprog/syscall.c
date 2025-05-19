@@ -1,3 +1,6 @@
+#include "filesys/filesys.h"
+#include "userprog/process.h"
+
 #include "userprog/syscall.h"
 #include <stdio.h>
 #include <syscall-nr.h>
@@ -10,6 +13,9 @@
 
 void syscall_entry (void);
 void syscall_handler (struct intr_frame *);
+bool create(const char *file, unsigned initial_size);
+bool remove(const char *file) ;
+void check_address(const uint64_t *addr);
 
 /* System call.
  *
@@ -187,26 +193,25 @@ bool remove(const char *file) {
 int open(const char *filename) {
 	check_address(filename); // 이상한 포인터면 즉시 종료
 	struct file *file_obj = filesys_open(filename);
-
+	
 	if (file_obj == NULL) {
-		// printf("Null 포인터 역참조 중!");
 		return -1;
 	}
-
 	int fd = process_add_file(file_obj);
 
 	if (fd == -1) { // fd table 꽉찬 경우 그냥 닫아버림
 		file_close(file_obj);
+    	file_obj = NULL;
 	}
 
 	return fd;
 }
 
 void close(int fd){
-	struct file *file = process_get_file_by_fd(fd);
-	if (file == NULL)
+	struct file *file_obj = process_get_file_by_fd(fd);
+	if (file_obj == NULL)
 		return;
-	// file_close(file);
+	file_close(file_obj);
 	process_close_file_by_id(fd);
 }
 
@@ -303,7 +308,7 @@ void syscall_handler (struct intr_frame *f UNUSED) {
 			f->R.rax = remove(f->R.rdi);
 			break;
 		case SYS_OPEN:
-			f->R.rax = open(f->R.rdi);
+    		f->R.rax = open((const char *)f->R.rdi);
 			break;
 		case SYS_FILESIZE:
 			f->R.rax = filesize(f->R.rdi);

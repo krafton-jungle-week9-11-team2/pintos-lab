@@ -13,9 +13,18 @@ struct file {
 /* Opens a file for the given INODE, of which it takes ownership,
  * and returns the new file.  Returns a null pointer if an
  * allocation fails or if INODE is null. */
+
+void file_my_dbg (struct file *file, int asdf) {
+	printf("BEFORE[%d] OP: file, %p",asdf,file);
+	printf(" file_obj->deny_write %d\n",file->deny_write);
+	file->deny_write = false;
+	printf("AFTER[%d] OP: file_obj->deny_write %p, %d\n",asdf,file, file->deny_write);
+}
+
 struct file *
 file_open (struct inode *inode) {
 	struct file *file = calloc (1, sizeof *file);
+
 	if (inode != NULL && file != NULL) {
 		file->inode = inode;
 		file->pos = 0;
@@ -27,6 +36,7 @@ file_open (struct inode *inode) {
 		return NULL;
 	}
 }
+
 
 /* Opens and returns a new file for the same inode as FILE.
  * Returns a null pointer if unsuccessful. */

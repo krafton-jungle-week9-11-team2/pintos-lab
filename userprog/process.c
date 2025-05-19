@@ -29,13 +29,15 @@ static void __do_fork (void *);
 
 /* General process initializer for initd and other process. */
 static void process_init (void) {
-	struct thread *current = thread_current ();
+	struct thread *curr = thread_current ();
+
 }
 
 // 파일 객체에 대한 파일 디스크립터를 생성 및 해당 fd 리턴
 int process_add_file(struct file *file_obj){
 	struct thread *t = thread_current();
 	struct file **fdt = t->fd_table;
+
 	int fd = t->next_fd; //fd값은 2부터 출발
 	
 	while (t->fd_table[fd] != NULL && fd < FDCOUNT_LIMIT) {
@@ -57,13 +59,12 @@ struct file *process_get_file_by_fd(int fd){
 	if (fd < 2 || fd >= FDCOUNT_LIMIT)
 		return NULL; // 범위외: NULL
 
-	// struct file **fdt = thread_current()->fd_table;
-	return thread_current()->fd_table[fd]; // fd에 대응되는 file object
+	struct file **fdt = thread_current()->fd_table;
+	return fdt[fd]; // fd에 대응되는 file object
 }
 
 // 자식 리스트에서 원하는 프로세스를 검색하는 함수
-struct thread *process_get_child(int pid)
-{
+struct thread *process_get_child(int pid) {
 	/* 자식 리스트에 접근하여 프로세스 디스크립터 검색 */
 	struct thread *cur = thread_current();
 	struct list *child_list = &cur->child_list;

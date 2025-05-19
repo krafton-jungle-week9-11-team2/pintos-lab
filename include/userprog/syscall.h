@@ -3,5 +3,15 @@
 
 void syscall_init (void);
 struct lock filesys_lock;
+void seek(int fd, unsigned position);
+void exit(int status) ;
+void halt(void);
+int write(int fd, const void *buffer, unsigned size);
+int exec(char *file_name) ;
+int open(const char *filename) ;
+void close(int fd);
+int filesize(int fd);
+int read(int fd, void *buffer, unsigned size);
+
 
 #endif /* userprog/syscall.h */
