@@ -37,24 +37,24 @@ static struct file *find_file_by_fd(int fd) {
 	return cur->fd_table[fd];
 }
  
-/**
- * add_file_to_fdt - 현재 프로세스의 fd테이블에 파일 추가
- * 
- * @param file: 파일 파라미터
- */
-int add_file_to_fdt(struct file *file) {
-	struct thread *curr = thread_current();
-	struct file **fdt = curr->fd_table;
+// /**
+//  * add_file_to_fdt - 현재 프로세스의 fd테이블에 파일 추가
+//  * 
+//  * @param file: 파일 파라미터
+//  */
+// int add_file_to_fdt(struct file *file) {
+// 	struct thread *curr = thread_current();
+// 	struct file **fdt = curr->fd_table;
 
-	// limit을 넘지 않는 범위 안에서 빈 자리 탐색
-	while (curr->next_fd < FDCOUNT_LIMIT && fdt[curr->next_fd])
-		curr->next_fd++;
-	if (curr->next_fd >= FDCOUNT_LIMIT)
-		return -1;
-	fdt[curr->next_fd] = file;
+// 	// limit을 넘지 않는 범위 안에서 빈 자리 탐색
+// 	while (curr->next_fd < FDCOUNT_LIMIT && fdt[curr->next_fd])
+// 		curr->next_fd++;
+// 	if (curr->next_fd >= FDCOUNT_LIMIT)
+// 		return -1;
+// 	fdt[curr->next_fd] = file;
 
-	return curr->next_fd;
-}
+// 	return curr->next_fd;
+// }
 
 /**
  * seek - 파일을 찾음.
@@ -113,7 +113,7 @@ int write(int fd, const void *buffer, unsigned size)
 	{
 		if (fd < 2)
 			return -1;
-		struct file *file = process_get_file(fd);
+		struct file *file = process_get_file_by_fd(fd);
 		if (file == NULL)
 			return -1;
 		lock_acquire(&filesys_lock);
@@ -187,23 +187,29 @@ bool remove(const char *file) {
  */
 int open(const char *filename) {
 	check_address(filename); // 이상한 포인터면 즉시 종료
-	struct file *open_file = filesys_open(filename);
+	struct file *file_obj = filesys_open(filename);
 
-	if (open_file == NULL) {
+	if (file_obj == NULL) {
 		// printf("Null 포인터 역참조 중!");
 		return -1;
 	}
 
-	int fd = add_file_to_fdt(open_file);
+	int fd = process_add_file(file_obj);
 
-	// fd table 가득 찼다면
-	if (fd == -1) {
-		file_close(open_file);
+	if (fd == -1) { // fd table 꽉찬 경우 그냥 닫아버림
+		file_close(file_obj);
 	}
 
 	return fd;
 }
 
+void close(int fd){
+	struct file *file = process_get_file_by_fd(fd);
+	if (file == NULL)
+		return;
+	// file_close(file);
+	process_close_file_by_id(fd);
+}
 
 // 파일의 크기를 알려주는 시스템 콜
 // fd인자를 받아 파일 크기 리턴
@@ -239,7 +245,7 @@ int read(int fd, void *buffer, unsigned size){
 			lock_release(&filesys_lock);
 			return -1;
 		}
-		struct file *file = process_get_file(fd);
+		struct file *file = process_get_file_by_fd(fd);
 		if (file == NULL){
 			lock_release(&filesys_lock);
 			return -1;
@@ -315,9 +321,9 @@ void syscall_handler (struct intr_frame *f UNUSED) {
 		// case SYS_TELL:
 		// 	f->R.rax = tell(f->R.rdi);
 		// 	break;
-		// case SYS_CLOSE:
-		// 	close(f->R.rdi);
-		// 	break;
+		case SYS_CLOSE:
+			close(f->R.rdi);
+			break;
 		default:
 			printf("UNDEFINED SYSTEM CALL!, %d", syscall_n);
 			exit(-1);

@@ -16,12 +16,12 @@ Executing 'wait-simple' - '0':
 (wait-simple) begin
 UNDEFINED SYSTEM CALL!, 2wait-simple: exit(-1)
 Execution of 'wait-simple' complete.
-Timer: 1016 ticks
-Thread: 34 idle ticks, 982 kernel ticks, 0 user ticks
+Timer: 983 ticks
+Thread: 35 idle ticks, 948 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 107 reads, 446 writes
 hd1:0: 204 reads, 0 writes
-Console: 939 characters output
+Console: 938 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

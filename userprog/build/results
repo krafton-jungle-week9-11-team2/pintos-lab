@@ -19,9 +19,9 @@ pass tests/userprog/open-empty
 pass tests/userprog/open-null
 pass tests/userprog/open-bad-ptr
 pass tests/userprog/open-twice
-FAIL tests/userprog/close-normal
-FAIL tests/userprog/close-twice
-FAIL tests/userprog/close-bad-fd
+pass tests/userprog/close-normal
+pass tests/userprog/close-twice
+pass tests/userprog/close-bad-fd
 FAIL tests/userprog/read-normal
 pass tests/userprog/read-bad-ptr
 FAIL tests/userprog/read-boundary

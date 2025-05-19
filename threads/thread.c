@@ -205,8 +205,7 @@ thread_print_stats (void) {
    PRIORITY, but no actual priority scheduling is implemented.
    Priority scheduling is the goal of Problem 1-3. */
 tid_t
-thread_create (const char *name, int priority,
-		thread_func *function, void *aux) {
+thread_create (const char *name, int priority, thread_func *function, void *aux) {
 	struct thread *t;
 	tid_t tid;
 
@@ -232,17 +231,15 @@ thread_create (const char *name, int priority,
 	t->tf.cs = SEL_KCSEG;
 	t->tf.eflags = FLAG_IF;
 
-	// project 2. ~
+	// project 2. user programs ~
 	t->fd_table = palloc_get_multiple(PAL_ZERO, FDT_PAGES);
-	t->next_fd = 2; // POSIX 규격상 fd 0: stdin, fd 1: stdout; fd 2부터 일반 파일
 	if (t->fd_table == NULL)
 		return TID_ERROR;
-	// ~ project 2.
+	// ~ project 2. user programs
 
 	/* Add to run queue. */
 	thread_unblock (t);
-	if(t->priority > thread_current()->priority)
-		thread_yield();
+	check_and_preempt();// project 2.
 	return tid;
 }
 
@@ -586,6 +583,13 @@ init_thread (struct thread *t, const char *name, int priority) {
     list_init(&t->donations);
     t->wait_lock = NULL;
 	/*-- Priority donation 과제 --*/
+
+	// project 2. user programs ~
+	t->exit_status = 0;
+	// t->fd_table[0] = 1; // stdin
+	// t->fd_table[1] = 2; // stdout
+	t->next_fd = 2; // POSIX 규격상 fd 0: stdin, fd 1: stdout; fd 2부터 일반 파일
+	// ~ project 2. user programs
 
 	t->magic = THREAD_MAGIC;
 }

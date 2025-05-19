@@ -4,7 +4,7 @@ Kernel command line: -q -f put sm-create run sm-create
 Pintos booting with: 
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
-Calibrating timer...  207,052,800 loops/s.
+Calibrating timer...  209,510,400 loops/s.
 hd0:0: detected 313 sector (156 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 107 sector (53 kB) disk, model "QEMU HARDDISK", serial "QM00003"
@@ -15,22 +15,22 @@ Executing 'sm-create' - '0':
 (sm-create) begin
 (sm-create) create "blargle"
 (sm-create) open "blargle" for verification
-Page fault at 0x423e038: not present error reading page in kernel context.
-Interrupt 0x0e (#PF Page-Fault Exception) at rip=800421eb10
- cr2=000000000423e038 error=               0
-rax 000000000423e038 rbx 0000000000000000 rcx 000000000040392b rdx 000000800421eaba
-rsp 0000008004242ec0 rbp 0000008004242ed0 rsi 0000000000000000 rdi 000000000423e038
-rip 000000800421eb10 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
-r11 0000000000000216 r12 000000800421d26f r13 0000000000000000 r14 0000000000000000
+Page fault at 0x423d038: not present error reading page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=800421eba0
+ cr2=000000000423d038 error=               0
+rax 000000000423d038 rbx 0000000000000000 rcx 000000000040392b rdx 000000800421eb4a
+rsp 0000008004241ec0 rbp 0000008004241ed0 rsi 0000000000000000 rdi 000000000423d038
+rip 000000800421eba0 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000216 r12 000000800421d2e7 r13 0000000000000000 r14 0000000000000000
 r15 0000000000000000 rflags 00000202
 es: 001b ds: 001b cs: 0008 ss: 0010
 Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217f80 0x800421c8cc 0x800421ca4b 0x8004208f63 0x8004209381 0x800421d04d 0x800421d3be 0x800421cac0 0x40075b 0x400976 0x400183 0x400e6c 0x400eb5.
+Call stack: 0x8004217f73 0x800421c9b4 0x800421cb33 0x8004208f56 0x8004209374 0x800421d0c5 0x800421d436 0x800421cba8 0x40075b 0x400976 0x400183 0x400e6c 0x400eb5.
 The `backtrace' program can make call stacks useful.
 Read "Backtraces" in the "Debugging Tools" chapter
 of the Pintos documentation for more information.
-Timer: 450 ticks
-Thread: 32 idle ticks, 417 kernel ticks, 1 user ticks
+Timer: 449 ticks
+Thread: 31 idle ticks, 417 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 107 reads, 266 writes
 hd1:0: 107 reads, 0 writes

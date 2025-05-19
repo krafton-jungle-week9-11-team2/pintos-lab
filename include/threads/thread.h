@@ -32,8 +32,8 @@ typedef int tid_t;
 
 /*-- Project 2. User Programs 과제. --*/
 // for system call
-#define FDT_PAGES 3                       // pages to allocate for file descriptor tables (thread_create, process_exit)
-#define FDCOUNT_LIMIT FDT_PAGES*(1 << 9) // Limit fdIdx
+#define FDT_PAGES 2                       // pages to allocate for file descriptor tables (thread_create, process_exit)
+#define FDCOUNT_LIMIT FDT_PAGES*(1 << 8) // Limit fdIdx
 /*-- Project 2. User Programs 과제. --*/
 
 /* A kernel thread or user process.

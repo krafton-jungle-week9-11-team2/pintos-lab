@@ -14,8 +14,8 @@ Putting 'wait-bad-pid' into the file system...
 Executing 'wait-bad-pid' - '0':
 (wait-bad-pid) begin
 Execution of 'wait-bad-pid' complete.
-Timer: 1697 ticks
-Thread: 32 idle ticks, 938 kernel ticks, 728 user ticks
+Timer: 1754 ticks
+Thread: 33 idle ticks, 965 kernel ticks, 756 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 80 reads, 232 writes
 hd1:0: 102 reads, 0 writes

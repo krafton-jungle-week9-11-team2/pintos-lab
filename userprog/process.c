@@ -28,13 +28,41 @@ static void initd (void *f_name);
 static void __do_fork (void *);
 
 /* General process initializer for initd and other process. */
-static void
-process_init (void) {
+static void process_init (void) {
 	struct thread *current = thread_current ();
 }
 
+// 파일 객체에 대한 파일 디스크립터를 생성 및 해당 fd 리턴
+int process_add_file(struct file *file_obj){
+	struct thread *t = thread_current();
+	struct file **fdt = t->fd_table;
+	int fd = t->next_fd; //fd값은 2부터 출발
+	
+	while (t->fd_table[fd] != NULL && fd < FDCOUNT_LIMIT) {
+		fd++;
+	}
+
+	if (fd >= FDCOUNT_LIMIT) {
+		return -1;
+	}
+
+	t->next_fd = fd;
+	fdt[fd] = file_obj;
+
+	return fd;
+}
+
+// 파일 객체를 검색
+struct file *process_get_file_by_fd(int fd){
+	if (fd < 2 || fd >= FDCOUNT_LIMIT)
+		return NULL; // 범위외: NULL
+
+	struct file **fdt = thread_current()->fd_table;
+	return fdt[fd]; // fd에 대응되는 file object
+}
+
 // 자식 리스트에서 원하는 프로세스를 검색하는 함수
-struct thread *get_child_process(int pid)
+struct thread *process_get_child(int pid)
 {
 	/* 자식 리스트에 접근하여 프로세스 디스크립터 검색 */
 	struct thread *cur = thread_current();
@@ -50,18 +78,16 @@ struct thread *get_child_process(int pid)
 	return NULL;
 }
 
-// 파일 객체를 검색하는 함수
-struct file *process_get_file(int fd)
-{
+// 현재 스레드의 fdt로부터 해당 fd의 파일 객체를 제거
+void process_close_file_by_id(int fd){
 	struct thread *curr = thread_current();
 	struct file **fdt = curr->fd_table;
-	/* 파일 디스크립터에 해당하는 파일 객체를 리턴 */
-	/* 없을 시 NULL 리턴 */
+
 	if (fd < 2 || fd >= FDCOUNT_LIMIT)
 		return NULL;
-	return fdt[fd];
-}
 
+	fdt[fd] = NULL;
+}
 
 /* Starts the first userland program, called "initd", loaded from FILE_NAME.
  * The new thread may be scheduled (and may even exit)
@@ -289,7 +315,7 @@ int process_wait (tid_t child_tid UNUSED) {
 	 * XXX:       implementing the process_wait. */
 
 	// struct thread *cur = thread_current();
-	// struct thread *child = get_child_process(child_tid);
+	// struct thread *child = process_get_child(child_tid);
 
 	// if (child == NULL)
 	// 	return -1;
@@ -317,6 +343,12 @@ process_exit (void) {
 	 * TODO: project2/process_termination.html).
 	 * TODO: We recommend you to implement process resource cleanup here. */
 
+	// printf("process_exit()!");
+	// printf("process_exit()!");
+	// printf("process_exit()!");
+	// printf("process_exit()!");
+	// printf("process_exit()!");
+	// printf("process_exit()!");
 	process_cleanup ();
 }
 
@@ -522,7 +554,7 @@ load (const char *file_name, struct intr_frame *if_) {
 
 done:
 	/* We arrive here whether the load is successful or not. */
-	file_close (file);
+	file_close (file); // TODO: 여기 말고 process_exit에서 닫도록 해야.
 	return success;
 }
 

@@ -1,19 +1,25 @@
 FAIL
-Kernel panic in run: PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217f80 0x800421c8cc 0x800421ca4b 0x8004208f63 0x8004209381 0x80042192fc 0x800420a095 0x800420a59f 0x800421cd64 0x800421d43a 0x800421cac0 0x400d4a 0x400174 0x400e5d 0x400ea6
-Translation of call stack:
-0x0000008004217f80: debug_panic (lib/kernel/debug.c:32)
-0x000000800421c8cc: kill (userprog/exception.c:103)
-0x000000800421ca4b: page_fault (userprog/exception.c:159 (discriminator 12))
-0x0000008004208f63: intr_handler (threads/interrupt.c:352)
-0x0000008004209381: intr_entry (threads/intr-stubs.o:?)
-0x00000080042192fc: list_insert_ordered (lib/kernel/list.c:428)
-0x000000800420a095: sema_down (threads/synch.c:122)
-0x000000800420a59f: lock_acquire (threads/synch.c:282)
-0x000000800421cd64: write (userprog/syscall.c:120)
-0x000000800421d43a: syscall_handler (userprog/syscall.c:310)
-0x000000800421cac0: no_sti (userprog/syscall-entry.o:?)
-0x0000000000400d4a: (unknown)
-0x0000000000400174: (unknown)
-0x0000000000400e5d: (unknown)
-0x0000000000400ea6: (unknown)
+Test output failed to match any acceptable form.
+
+Acceptable output:
+  (lg-seq-random) begin
+  (lg-seq-random) create "nibble"
+  (lg-seq-random) open "nibble"
+  (lg-seq-random) writing "nibble"
+  (lg-seq-random) close "nibble"
+  (lg-seq-random) open "nibble" for verification
+  (lg-seq-random) verified contents of "nibble"
+  (lg-seq-random) close "nibble"
+  (lg-seq-random) end
+Differences in `diff -u' format:
+  (lg-seq-random) begin
+  (lg-seq-random) create "nibble"
+- (lg-seq-random) open "nibble"
+- (lg-seq-random) writing "nibble"
+- (lg-seq-random) close "nibble"
+- (lg-seq-random) open "nibble" for verification
+- (lg-seq-random) verified contents of "nibble"
+- (lg-seq-random) close "nibble"
+- (lg-seq-random) end
+
+(Process exit codes are excluded for matching purposes.)

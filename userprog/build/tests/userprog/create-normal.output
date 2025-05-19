@@ -17,12 +17,12 @@ Executing 'create-normal' - '0':
 (create-normal) end
 create-normal: exit(0)
 Execution of 'create-normal' complete.
-Timer: 1002 ticks
-Thread: 32 idle ticks, 970 kernel ticks, 0 user ticks
+Timer: 958 ticks
+Thread: 31 idle ticks, 927 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 102 reads, 246 writes
 hd1:0: 103 reads, 0 writes
-Console: 914 characters output
+Console: 913 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

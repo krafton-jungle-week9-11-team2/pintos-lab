@@ -16,14 +16,15 @@ Executing 'close-normal' - '0':
 (close-normal) begin
 (close-normal) open "sample.txt"
 (close-normal) close "sample.txt"
-UNDEFINED SYSTEM CALL!, 13close-normal: exit(-1)
+(close-normal) end
+close-normal: exit(0)
 Execution of 'close-normal' complete.
-Timer: 965 ticks
-Thread: 33 idle ticks, 932 kernel ticks, 0 user ticks
+Timer: 974 ticks
+Thread: 33 idle ticks, 941 kernel ticks, 0 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 111 reads, 248 writes
 hd1:0: 105 reads, 0 writes
-Console: 1008 characters output
+Console: 1000 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

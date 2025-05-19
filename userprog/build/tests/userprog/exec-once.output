@@ -15,22 +15,22 @@ Putting 'child-simple' into the file system...
 Executing 'exec-once' - '0':
 (exec-once) begin
 (exec-once) I'm your father
-Page fault at 0x4241000: not present error writing page in kernel context.
-Interrupt 0x0e (#PF Page-Fault Exception) at rip=8004216f29
- cr2=0000000004241000 error=               2
-rax 0000000004241000 rbx 0000000000000000 rcx 0000000004241001 rdx 0000000000000063
-rsp 0000008004242e60 rbp 0000008004242e90 rsi 0000000000404330 rdi 0000000004241000
-rip 0000008004216f29 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
-r11 0000000000000212 r12 000000800421d26f r13 0000000000000000 r14 0000000000000000
+Page fault at 0x4240000: not present error writing page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=8004216f1c
+ cr2=0000000004240000 error=               2
+rax 0000000004240000 rbx 0000000000000000 rcx 0000000004240001 rdx 0000000000000063
+rsp 0000008004241e60 rbp 0000008004241e90 rsi 0000000000404330 rdi 0000000004240000
+rip 0000008004216f1c r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000212 r12 000000800421d2e7 r13 0000000000000000 r14 0000000000000000
 r15 0000000000000000 rflags 00000206
 es: 001b ds: 001b cs: 0008 ss: 0010
 Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217f80 0x800421c8cc 0x800421ca4b 0x8004208f63 0x8004209381 0x80042179b3 0x800421ce37 0x800421d2eb 0x800421cac0 0x40011d 0x40017b 0x400c1c.
+Call stack: 0x8004217f73 0x800421c9b4 0x800421cb33 0x8004208f56 0x8004209374 0x80042179a6 0x800421ce61 0x800421d363 0x800421cba8 0x40011d 0x40017b 0x400c1c.
 The `backtrace' program can make call stacks useful.
 Read "Backtraces" in the "Debugging Tools" chapter
 of the Pintos documentation for more information.
-Timer: 248 ticks
-Thread: 34 idle ticks, 213 kernel ticks, 1 user ticks
+Timer: 249 ticks
+Thread: 34 idle ticks, 213 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 107 reads, 446 writes
 hd1:0: 204 reads, 0 writes
