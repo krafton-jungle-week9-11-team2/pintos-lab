@@ -57,8 +57,8 @@ struct file *process_get_file_by_fd(int fd){
 	if (fd < 2 || fd >= FDCOUNT_LIMIT)
 		return NULL; // 범위외: NULL
 
-	struct file **fdt = thread_current()->fd_table;
-	return fdt[fd]; // fd에 대응되는 file object
+	// struct file **fdt = thread_current()->fd_table;
+	return thread_current()->fd_table[fd]; // fd에 대응되는 file object
 }
 
 // 자식 리스트에서 원하는 프로세스를 검색하는 함수

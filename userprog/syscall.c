@@ -27,15 +27,15 @@ void syscall_handler (struct intr_frame *);
 #define PAL_ZERO 0
 
 
-// fd로 파일 찾는 함수
-static struct file *find_file_by_fd(int fd) {
-	struct thread *cur = thread_current();
+// // fd로 파일 찾는 함수
+// static struct file *find_file_by_fd(int fd) {
+// 	struct thread *cur = thread_current();
 
-	if (fd < 0 || fd >= FDCOUNT_LIMIT) {
-		return NULL;
-	}
-	return cur->fd_table[fd];
-}
+// 	if (fd < 0 || fd >= FDCOUNT_LIMIT) {
+// 		return NULL;
+// 	}
+// 	return cur->fd_table[fd];
+// }
  
 // /**
 //  * add_file_to_fdt - 현재 프로세스의 fd테이블에 파일 추가
@@ -64,7 +64,7 @@ static struct file *find_file_by_fd(int fd) {
  */
 void seek(int fd, unsigned position)
 {
-	struct file *file = find_file_by_fd(fd);
+	struct file *file = process_get_file_by_fd(fd);
 	if (file == NULL)
 		return;
 	file_seek(file, position);
@@ -213,7 +213,7 @@ void close(int fd){
 // 파일의 크기를 알려주는 시스템 콜
 // fd인자를 받아 파일 크기 리턴
 int filesize(int fd) {
-	struct file *open_file = find_file_by_fd(fd);
+	struct file *open_file = process_get_file_by_fd(fd);
 	if (open_file == NULL) {
 		return -1;
 	}
