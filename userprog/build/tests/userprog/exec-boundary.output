@@ -14,14 +14,14 @@ Putting 'exec-boundary' into the file system...
 Putting 'child-simple' into the file system...
 Executing 'exec-boundary' - '0':
 (exec-boundary) begin
-UNDEFINED SYSTEM CALL!, 2exec-boundary: exit(-1)
+FATAL: UNDEFINED SYSTEM CALL!, 2exec-boundary: exit(-1)
 Execution of 'exec-boundary' complete.
-Timer: 259 ticks
-Thread: 234 idle ticks, 24 kernel ticks, 1 user ticks
+Timer: 260 ticks
+Thread: 233 idle ticks, 25 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 107 reads, 452 writes
 hd1:0: 207 reads, 0 writes
-Console: 952 characters output
+Console: 959 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

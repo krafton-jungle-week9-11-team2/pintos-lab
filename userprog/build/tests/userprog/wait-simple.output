@@ -14,14 +14,14 @@ Putting 'wait-simple' into the file system...
 Putting 'child-simple' into the file system...
 Executing 'wait-simple' - '0':
 (wait-simple) begin
-UNDEFINED SYSTEM CALL!, 2wait-simple: exit(-1)
+FATAL: UNDEFINED SYSTEM CALL!, 2wait-simple: exit(-1)
 Execution of 'wait-simple' complete.
 Timer: 260 ticks
 Thread: 234 idle ticks, 25 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 107 reads, 446 writes
 hd1:0: 204 reads, 0 writes
-Console: 938 characters output
+Console: 945 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

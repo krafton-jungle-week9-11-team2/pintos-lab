@@ -14,14 +14,14 @@ Putting 'wait-twice' into the file system...
 Putting 'child-simple' into the file system...
 Executing 'wait-twice' - '0':
 (wait-twice) begin
-UNDEFINED SYSTEM CALL!, 2wait-twice: exit(-1)
+FATAL: UNDEFINED SYSTEM CALL!, 2wait-twice: exit(-1)
 Execution of 'wait-twice' complete.
-Timer: 260 ticks
-Thread: 231 idle ticks, 27 kernel ticks, 2 user ticks
+Timer: 261 ticks
+Thread: 237 idle ticks, 23 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 107 reads, 446 writes
 hd1:0: 204 reads, 0 writes
-Console: 931 characters output
+Console: 938 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

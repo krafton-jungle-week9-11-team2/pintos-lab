@@ -18,14 +18,14 @@ Executing 'rox-child' - '0':
 (rox-child) read "child-rox"
 (rox-child) write "child-rox"
 (rox-child) exec "child-rox 1"
-UNDEFINED SYSTEM CALL!, 2rox-child: exit(-1)
+FATAL: UNDEFINED SYSTEM CALL!, 2rox-child: exit(-1)
 Execution of 'rox-child' complete.
 Timer: 260 ticks
-Thread: 233 idle ticks, 26 kernel ticks, 1 user ticks
+Thread: 229 idle ticks, 28 kernel ticks, 3 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 114 reads, 479 writes
 hd1:0: 220 reads, 0 writes
-Console: 1037 characters output
+Console: 1044 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

@@ -19,4 +19,4 @@ Differences in `diff -u' format:
 - (fork-close) Parent success
 - (fork-close) end
 - fork-close: exit(0)
-+ UNDEFINED SYSTEM CALL!, 2fork-close: exit(-1)
++ FATAL: UNDEFINED SYSTEM CALL!, 2fork-close: exit(-1)

@@ -18,14 +18,14 @@ Executing 'rox-multichild' - '0':
 (rox-multichild) read "child-rox"
 (rox-multichild) write "child-rox"
 (rox-multichild) exec "child-rox 5"
-UNDEFINED SYSTEM CALL!, 2rox-multichild: exit(-1)
+FATAL: UNDEFINED SYSTEM CALL!, 2rox-multichild: exit(-1)
 Execution of 'rox-multichild' complete.
-Timer: 261 ticks
-Thread: 231 idle ticks, 28 kernel ticks, 2 user ticks
+Timer: 260 ticks
+Thread: 231 idle ticks, 27 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 114 reads, 479 writes
 hd1:0: 220 reads, 0 writes
-Console: 1092 characters output
+Console: 1099 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

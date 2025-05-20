@@ -17,7 +17,7 @@ Differences in `diff -u' format:
 - (wait-killed) wait(exec()) = -1
 - (wait-killed) end
 - wait-killed: exit(0)
-+ UNDEFINED SYSTEM CALL!, 2wait-killed: exit(-1)
++ FATAL: UNDEFINED SYSTEM CALL!, 2wait-killed: exit(-1)
 Acceptable output:
   (wait-killed) begin
   (child-bad) begin
@@ -32,4 +32,4 @@ Differences in `diff -u' format:
 - (wait-killed) wait(exec()) = -1
 - (wait-killed) end
 - wait-killed: exit(0)
-+ UNDEFINED SYSTEM CALL!, 2wait-killed: exit(-1)
++ FATAL: UNDEFINED SYSTEM CALL!, 2wait-killed: exit(-1)

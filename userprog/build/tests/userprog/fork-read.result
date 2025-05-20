@@ -21,4 +21,4 @@ Differences in `diff -u' format:
 - (fork-read) Parent success
 - (fork-read) end
 - fork-read: exit(0)
-+ UNDEFINED SYSTEM CALL!, 2fork-read: exit(-1)
++ FATAL: UNDEFINED SYSTEM CALL!, 2fork-read: exit(-1)

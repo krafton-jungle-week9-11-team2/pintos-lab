@@ -77,4 +77,4 @@ Differences in `diff -u' format:
 - (rox-multichild) write "child-rox"
 - (rox-multichild) end
 - rox-multichild: exit(0)
-+ UNDEFINED SYSTEM CALL!, 2rox-multichild: exit(-1)
++ FATAL: UNDEFINED SYSTEM CALL!, 2rox-multichild: exit(-1)

@@ -13,14 +13,14 @@ Boot complete.
 Putting 'fork-multiple' into the file system...
 Executing 'fork-multiple' - '0':
 (fork-multiple) begin
-UNDEFINED SYSTEM CALL!, 2fork-multiple: exit(-1)
+FATAL: UNDEFINED SYSTEM CALL!, 2fork-multiple: exit(-1)
 Execution of 'fork-multiple' complete.
-Timer: 255 ticks
-Thread: 230 idle ticks, 24 kernel ticks, 1 user ticks
+Timer: 257 ticks
+Thread: 229 idle ticks, 27 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 87 reads, 236 writes
 hd1:0: 104 reads, 0 writes
-Console: 886 characters output
+Console: 893 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

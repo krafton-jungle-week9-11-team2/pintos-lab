@@ -29,4 +29,4 @@ Differences in `diff -u' format:
 - (rox-child) write "child-rox"
 - (rox-child) end
 - rox-child: exit(0)
-+ UNDEFINED SYSTEM CALL!, 2rox-child: exit(-1)
++ FATAL: UNDEFINED SYSTEM CALL!, 2rox-child: exit(-1)

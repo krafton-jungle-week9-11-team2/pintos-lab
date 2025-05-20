@@ -15,4 +15,4 @@ Differences in `diff -u' format:
 - (wait-simple) wait(exec()) = 81
 - (wait-simple) end
 - wait-simple: exit(0)
-+ UNDEFINED SYSTEM CALL!, 2wait-simple: exit(-1)
++ FATAL: UNDEFINED SYSTEM CALL!, 2wait-simple: exit(-1)

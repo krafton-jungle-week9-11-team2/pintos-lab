@@ -29,4 +29,4 @@ Differences in `diff -u' format:
 - (exec-read) Parent success
 - (exec-read) end
 - exec-read: exit(0)
-+ UNDEFINED SYSTEM CALL!, 2exec-read: exit(-1)
++ FATAL: UNDEFINED SYSTEM CALL!, 2exec-read: exit(-1)

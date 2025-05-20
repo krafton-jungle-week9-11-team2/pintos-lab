@@ -23,4 +23,4 @@ Differences in `diff -u' format:
 - (multi-child-fd) verified contents of "sample.txt"
 - (multi-child-fd) end
 - multi-child-fd: exit(0)
-+ UNDEFINED SYSTEM CALL!, 2multi-child-fd: exit(-1)
++ FATAL: UNDEFINED SYSTEM CALL!, 2multi-child-fd: exit(-1)

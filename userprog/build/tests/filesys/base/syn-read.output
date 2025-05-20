@@ -18,14 +18,14 @@ Executing 'syn-read' - '0':
 (syn-read) open "data"
 (syn-read) write "data"
 (syn-read) close "data"
-UNDEFINED SYSTEM CALL!, 2syn-read: exit(-1)
+FATAL: UNDEFINED SYSTEM CALL!, 2syn-read: exit(-1)
 Execution of 'syn-read' complete.
-Timer: 261 ticks
-Thread: 236 idle ticks, 25 kernel ticks, 0 user ticks
+Timer: 260 ticks
+Thread: 233 idle ticks, 25 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 137 reads, 504 writes
 hd1:0: 225 reads, 0 writes
-Console: 1017 characters output
+Console: 1024 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

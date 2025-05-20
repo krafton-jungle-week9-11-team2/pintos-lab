@@ -11,7 +11,7 @@ Differences in `diff -u' format:
 - (multi-oom) Spawned at least 10 children.
 - (multi-oom) success. Program forked 10 iterations.
 - (multi-oom) end
-+ UNDEFINED SYSTEM CALL!, 2multi-oom: exit(-1)
++ FATAL: UNDEFINED SYSTEM CALL!, 2multi-oom: exit(-1)
 
 (Process exit codes are excluded for matching purposes.)
 

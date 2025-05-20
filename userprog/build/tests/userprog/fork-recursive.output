@@ -13,14 +13,14 @@ Boot complete.
 Putting 'fork-recursive' into the file system...
 Executing 'fork-recursive' - '0':
 (fork-recursive) begin
-UNDEFINED SYSTEM CALL!, 2fork-recursive: exit(-1)
+FATAL: UNDEFINED SYSTEM CALL!, 2fork-recursive: exit(-1)
 Execution of 'fork-recursive' complete.
 Timer: 256 ticks
-Thread: 232 idle ticks, 24 kernel ticks, 0 user ticks
+Thread: 233 idle ticks, 22 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 87 reads, 236 writes
 hd1:0: 104 reads, 0 writes
-Console: 893 characters output
+Console: 900 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

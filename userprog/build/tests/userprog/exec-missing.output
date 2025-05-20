@@ -13,24 +13,31 @@ Boot complete.
 Putting 'exec-missing' into the file system...
 Executing 'exec-missing' - '0':
 (exec-missing) begin
-Page fault at 0x4240000: not present error writing page in kernel context.
-Interrupt 0x0e (#PF Page-Fault Exception) at rip=8004216f1c
- cr2=0000000004240000 error=               2
-rax 0000000004240000 rbx 0000000000000000 rcx 0000000004240001 rdx 000000000000006e
-rsp 0000008004241e60 rbp 0000008004241e90 rsi 0000000000404320 rdi 0000000004240000
-rip 0000008004216f1c r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
-r11 0000000000000212 r12 000000800421d20f r13 0000000000000000 r14 0000000000000000
+load: no-such-file: open failed
+Page fault at 0xcff: not present error writing page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=800421ba66
+ cr2=0000000000000cff error=               2
+rax 0000000000000cff rbx 0000000000000000 rcx 0000000000000001 rdx 0000000000000000
+rsp 0000008004241b80 rbp 0000008004241bc0 rsi 0000000000000001 rdi 0000008004240000
+rip 000000800421ba66 r8 0000008004241a5c  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000212 r12 000000800421d208 r13 0000000000000000 r14 0000000000000000
 r15 0000000000000000 rflags 00000206
 es: 001b ds: 001b cs: 0008 ss: 0010
 Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217f73 0x800421c9a1 0x800421cb20 0x8004208f56 0x8004209374 0x80042179a6 0x800421cde2 0x800421d28b 0x800421cb95 0x400102 0x40017d 0x400c1e.
-The `backtrace' program can make call stacks useful.
-Read "Backtraces" in the "Debugging Tools" chapter
-of the Pintos documentation for more information.
-Timer: 58 ticks
-Thread: 31 idle ticks, 25 kernel ticks, 2 user ticks
+Call stack: 0x8004217f73 0x800421c9a1 0x800421cb20 0x8004208f56 0x8004209374 0x800421bc85 0x800421cdee 0x800421d284 0x800421cb95Page fault at 0x4747ff80: not present error reading page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=8004214fad
+ cr2=000000004747ff80 error=               0
+rax 000000004747ff80 rbx 0000000000000000 rcx 00000080040b8000 rdx 00000000000003d4
+rsp 0000008004241980 rbp 0000008004241990 rsi 000000000000b00f rdi 0000000000000000
+rip 0000008004214fad r8 0000008004241898  r9 000000800421b3ec r10 0000000000000000
+r11 0000000000000212 r12 000000800421d208 r13 0000000000000000 r14 0000000000000000
+r15 0000000000000000 rflags 00000002
+es: 0010 ds: 0010 cs: 0008 ss: 0010
+Kernel PANIC recursion at ../../userprog/exception.c:97 in kill().
+Timer: 62 ticks
+Thread: 32 idle ticks, 25 kernel ticks, 5 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 80 reads, 234 writes
+hd0:1: 97 reads, 234 writes
 hd1:0: 103 reads, 0 writes
-Console: 1791 characters output
+Console: 2292 characters output
 Keyboard: 0 keys 

@@ -328,7 +328,7 @@ int process_wait (tid_t child_tid UNUSED) {
 
 	// return exit_status;
 
-	timer_msleep(2000);
+	timer_msleep(2000); // 2000 ms면 뭐라도 하겠지
 
 	return -1;
 }

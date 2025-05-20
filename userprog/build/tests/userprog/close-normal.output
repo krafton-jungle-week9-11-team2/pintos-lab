@@ -20,7 +20,7 @@ Executing 'close-normal' - '0':
 close-normal: exit(0)
 Execution of 'close-normal' complete.
 Timer: 256 ticks
-Thread: 233 idle ticks, 22 kernel ticks, 1 user ticks
+Thread: 231 idle ticks, 24 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 111 reads, 248 writes
 hd1:0: 105 reads, 0 writes

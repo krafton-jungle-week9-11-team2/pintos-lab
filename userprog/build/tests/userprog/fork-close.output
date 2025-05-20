@@ -15,14 +15,14 @@ Putting 'sample.txt' into the file system...
 Executing 'fork-close' - '0':
 (fork-close) begin
 (fork-close) open "sample.txt"
-UNDEFINED SYSTEM CALL!, 2fork-close: exit(-1)
+FATAL: UNDEFINED SYSTEM CALL!, 2fork-close: exit(-1)
 Execution of 'fork-close' complete.
 Timer: 257 ticks
-Thread: 231 idle ticks, 24 kernel ticks, 2 user ticks
+Thread: 230 idle ticks, 26 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 121 reads, 258 writes
 hd1:0: 110 reads, 0 writes
-Console: 957 characters output
+Console: 964 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 This is Gabe! Powering off...

@@ -17,4 +17,4 @@ Differences in `diff -u' format:
 - (fork-boundary) wait
 - (fork-boundary) end
 - fork-boundary: exit(0)
-+ UNDEFINED SYSTEM CALL!, 2fork-boundary: exit(-1)
++ FATAL: UNDEFINED SYSTEM CALL!, 2fork-boundary: exit(-1)

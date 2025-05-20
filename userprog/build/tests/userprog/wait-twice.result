@@ -17,4 +17,4 @@ Differences in `diff -u' format:
 - (wait-twice) wait(exec()) = -1
 - (wait-twice) end
 - wait-twice: exit(0)
-+ UNDEFINED SYSTEM CALL!, 2wait-twice: exit(-1)
++ FATAL: UNDEFINED SYSTEM CALL!, 2wait-twice: exit(-1)
