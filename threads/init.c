@@ -119,7 +119,7 @@ main (void) {
 	printf ("Boot complete.\n");
 
 	/* Run actions specified on kernel command line. */
-	run_actions (argv); // 얘가 커맨드라인 읽음!!!!
+	run_actions (argv); // 얘가 바이너리를 시작!!
 
 	/* Finish up. */
 	if (power_off_when_done)

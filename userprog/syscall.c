@@ -34,6 +34,29 @@ void check_address(const uint64_t *addr);
 
 #define PAL_ZERO 0
 
+
+/**
+ * 주소값이 유저 영역(<0x8004000000)내인지를 검증
+ * 
+ * @param addr: 주소값.
+ */
+void check_address(const uint64_t *addr){
+	struct thread *cur = thread_current();
+	if (addr == NULL || !(is_user_vaddr(addr)) || pml4_get_page(cur->pml4, addr) == NULL) 
+		exit(-1);
+}
+
+/**
+ * halt - 머신을 halt함.
+ * 
+ */
+void halt(void){
+	// printf("NOW HALTING!\n");
+	// for(int i=0;i<100000000;i++)
+	// 	timer_msleep(2);
+    power_off();
+}
+
 /**
  * seek - 파일을 탐색.
  * 
@@ -54,23 +77,11 @@ void seek(int fd, unsigned position) {
  */
 void exit(int status) {
 	struct thread *curr = thread_current();
-    curr->exit_status = status;		// 프로그램이 정상적으로 종료되었는지 확인(정상적 종료 시 0)
+    curr->exit_status = status; // 프로그램이 정상적으로 종료되었는지 확인(정상적 종료 시 0)
 
-	printf("%s: exit(%d)\n", thread_name(), status); 	// 디버그: 프로세스가 꺼진다는 Message 출력
-	thread_exit();		// 스레드 종료
+	printf("%s: exit(%d)\n", thread_name(), status); // 디버그용
+	thread_exit(); // 스레드 종료
 }
-
-/**
- * halt - 머신을 halt함.
- * 
- */
-void halt(void){
-	// printf("NOW HALTING!\n");
-	// for(int i=0;i<100000000;i++)
-	// 	timer_msleep(2);
-    power_off();
-}
-
 
 /**
  * write - fd에 buffer로부터 size만큼을 작성.
@@ -99,39 +110,37 @@ int write(int fd, const void *buffer, unsigned size){
 	return bytes_write;
 }
 
+/**
+ * fork - 새 자식 프로세스 (스레드아님??) 생성.
+ * 성공일 경우 fd, 실패일 경우 -1.
+ * 
+ * @param file_name: 실행 파일명.
+ */
+tid_t fork(char *thr_name, struct intr_frame *if_) {
+	return process_fork(thr_name, if_);
+}
 
 /**
- * exec - 현재 프로세스를 file_name의 지정된 실행 파일로 변경.
+ * exec - 현재 프로세스를 file_name의 실행 파일로 변경.
  * 
  * @param file_name: 실행 파일명.
  */
 int exec(char *file_name) {
 	check_address(file_name);
-
-	int file_size = strlen(file_name) + 1;
-	char *fn_copy = palloc_get_page(PAL_ZERO);
-	if (fn_copy == NULL) {
-		exit(-1);
-	}
-	strlcpy(fn_copy, file_name, file_size);
-
-	if (process_exec(fn_copy) == -1) {
-		return -1;
-	}
+	
+	// 새로운 페이지 한 장(4KB)을 제로필 후 확보.
+	char *page_copied = palloc_get_page(PAL_ZERO); 
+	if (page_copied == NULL)
+		exit(-1); // 할당 실패 시 즉시 종료.
+	
+	// 파라미터의 file_name을, 방금 확보한 커널 메모리에 복사.
+	strlcpy(page_copied, file_name, strlen(file_name) + 1); // strlcpy는 마지막에 NULL자를 포함함. 그래서 +1.
+	//process_exec()는 현재 프로세스의 전체 주소 공간, 코드, 데이터, 스택 등을 새로운 실행 파일(fn_copy)로 로드.
+	if (process_exec(page_copied) == -1)
+		exit(-1); // exec에 실패 시 즉시 종료.
 
 	NOT_REACHED();
 	return 0;
-}
-
-/**
- * 주소값이 유저 영역(<0x8004000000)내인지를 검증
- * 
- * @param addr: 주소값.
- */
-void check_address(const uint64_t *addr){
-	struct thread *cur = thread_current();
-	if (addr == NULL || !(is_user_vaddr(addr)) || pml4_get_page(cur->pml4, addr) == NULL) 
-		exit(-1);
 }
 
 /**
@@ -224,16 +233,15 @@ int read(int fd, void *buffer, unsigned size){
     if (buffer == NULL || !is_user_vaddr(buffer))
         exit(-1);
 
-	// 1. 검증
+	// 1. 주소 범위 검증
 	check_address(buffer);
 
     // 2. stdin (fd == 0)일 경우
     if (fd == STDIN_FILENO) {
         unsigned i;
         uint8_t *buf = buffer;
-        for (i = 0; i < size; i++) {
+        for (i = 0; i < size; i++) 
             buf[i] = input_getc();
-        }
         return i;
     }
 
@@ -269,27 +277,25 @@ void syscall_init (void) {
 
 /* The main system call interface */
 void syscall_handler (struct intr_frame *f UNUSED) {
-	// TODO: Your implementation goes here.
-	// printf ("system call!\n");
-	int syscall_n = (int) f->R.rax; /* 시스템 콜 넘버 */
+	int syscall_n = (int) f->R.rax; // 시스템 콜 번호 받아옴
 
 	/*
-	 x86-64 규약은 함수가 리턴하는 값을 rax 레지스터에 배치하는 것
-	 값을 반환하는 시스템 콜은 intr_frame 구조체의 rax 멤버 수정으로 가능
+	 x86-64 규약은 함수가 리턴하는 값을 "rax 레지스터"에 담음. 다른 인자들은 rdi, rsi 등 다른 레지스터로 전달.
+	 시스템 콜들 중 값 반환이 필요한 것은, struct intr_frame의 rax 멤버 수정을 통해 구현
 	 */
-	// printf("%d, %d, %d, %d\n",SYS_HALT, SYS_EXIT, SYS_READ, syscall_n);
 	switch (syscall_n) {		//  system call number가 rax에 있음.
 		case SYS_HALT:
 			// printf("SYS_HALT [%d]", syscall_n);
-			halt();			// pintos를 종료시키는 시스템 콜
+			halt();	 // Pintos 자체를 종료
 			break;
 		case SYS_EXIT:
 			// printf("SYS_EXIT [%d]", syscall_n);
-			exit(f->R.rdi);	// 현재 프로세스를 종료시키는 시스템 콜
+			exit(f->R.rdi);	// 현재 프로세스를 종료
 			break;
-		// case SYS_FORK:
-		// 	f->R.rax = fork(f->R.rdi, f);
-		// 	break;
+		case SYS_FORK:
+			// printf("SYS_FORK [%d]", syscall_n);
+			f->R.rax = fork(f->R.rdi, f);
+			break;
 		case SYS_EXEC:
 			// printf("SYS_EXEC [%d]", syscall_n);
 			f->R.rax = exec(f->R.rdi);

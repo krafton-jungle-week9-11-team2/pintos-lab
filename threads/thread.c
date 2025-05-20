@@ -230,8 +230,9 @@ thread_create (const char *name, int priority, thread_func *function, void *aux)
 	t->tf.ss = SEL_KDSEG;
 	t->tf.cs = SEL_KCSEG;
 	t->tf.eflags = FLAG_IF;
-
+	
 	// project 2. user programs ~
+	list_push_back(&thread_current()->child_list, &t->child_elem); // 현재 스레드의 자식으로 추가
 	t->fd_table = palloc_get_multiple(PAL_ZERO, FDT_PAGES);
 	if (t->fd_table == NULL)
 		return TID_ERROR;
@@ -240,6 +241,7 @@ thread_create (const char *name, int priority, thread_func *function, void *aux)
 	/* Add to run queue. */
 	thread_unblock (t);
 	check_and_preempt();// project 2.
+
 	return tid;
 }
 
@@ -584,14 +586,19 @@ init_thread (struct thread *t, const char *name, int priority) {
     t->wait_lock = NULL;
 	/*-- Priority donation 과제 --*/
 
+	t->magic = THREAD_MAGIC;
+
 	// project 2. user programs ~
 	t->exit_status = 0;
 	// t->fd_table[0] = 1; // stdin
 	// t->fd_table[1] = 2; // stdout
 	t->next_fd = 2; // POSIX 규격상 fd 0: stdin, fd 1: stdout; fd 2부터 일반 파일
-	// ~ project 2. user programs
 
-	t->magic = THREAD_MAGIC;
+	sema_init(&t->load_sema, 0);
+	sema_init(&t->exit_sema, 0);
+	sema_init(&t->wait_sema, 0);
+	list_init(&(t->child_list));
+	// ~ project 2. user programs
 }
 
 /* Chooses and returns the next thread to be scheduled.  Should

@@ -33,7 +33,7 @@ typedef int tid_t;
 /*-- Project 2. User Programs 과제. --*/
 // for system call
 #define FDT_PAGES 2                       // pages to allocate for file descriptor tables (thread_create, process_exit)
-#define FDCOUNT_LIMIT FDT_PAGES*(1 << 8) // Limit fdIdx
+#define FDCOUNT_LIMIT FDT_PAGES*(1 << 6) // Limit fdIdx
 /*-- Project 2. User Programs 과제. --*/
 
 /* A kernel thread or user process.
@@ -133,8 +133,8 @@ struct thread {
 	int next_fd;// fd테이블에 open spot의 인덱스
 
 	struct intr_frame parent_if;
-	struct list child_list;
-	struct list_elem child_elem;
+    struct list child_list;        // 자신의 자식 목록
+    struct list_elem child_elem;   // 부모의 child_list에 들어갈 때 사용하는 노드
 
 	struct semaphore load_sema; // 현재 스레드가 load되는 동안 부모가 기다리게 하기 위한 semaphore
 	struct semaphore exit_sema;
@@ -169,6 +169,7 @@ void thread_exit (void) NO_RETURN;
 void thread_yield (void);
 
 bool thread_priority_cmp(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
+bool thread_wakeup_tick_cmp(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
 
 int thread_get_priority (void);
 void thread_set_priority (int);
