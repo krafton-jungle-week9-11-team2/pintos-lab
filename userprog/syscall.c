@@ -78,15 +78,25 @@ void exit(int status)
 
 int write(int fd, const void *buffer, unsigned size)
 {
-	check_address(buffer); // 주소 유효성 검사
+	check_address(buffer);
+
+	int write_result;
 
 	if (fd == 1)
 	{
-		putbuf(buffer, size);
+		putbuf(buffer, size); // stdout
 		return size;
 	}
 
-	return -1;
+	struct file *file_fd = find_file_by_fd(fd);
+	if (file_fd == NULL)
+		return -1;
+
+	lock_acquire(&filesys_lock);
+	write_result = file_write(file_fd, buffer, size);
+	lock_release(&filesys_lock);
+
+	return write_result;
 }
 int exec(char *file_name)
 {
@@ -122,7 +132,7 @@ bool remove(const char *file)
 	check_address(file);
 	return filesys_remove(file);
 }
-static struct file *find_file_by_fd(int fd)
+struct file *find_file_by_fd(int fd)
 {
 	struct thread *cur = thread_current();
 
