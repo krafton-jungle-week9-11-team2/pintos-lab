@@ -1,15 +1,80 @@
 FAIL
-Kernel panic in run: PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217f31 0x800421c7d4 0x800421c953 0x8004208f14 0x8004209332 0x800421cebc 0x800421d093 0x800421c9c8 0x40012f 0x4003c5 0x400e66
-Translation of call stack:
-0x0000008004217f31: debug_panic (lib/kernel/debug.c:32)
-0x000000800421c7d4: kill (userprog/exception.c:103)
-0x000000800421c953: page_fault (userprog/exception.c:159 (discriminator 12))
-0x0000008004208f14: intr_handler (threads/interrupt.c:352)
-0x0000008004209332: intr_entry (threads/intr-stubs.o:?)
-0x000000800421cebc: open (userprog/syscall.c:179)
-0x000000800421d093: syscall_handler (userprog/syscall.c:231)
-0x000000800421c9c8: no_sti (userprog/syscall-entry.o:?)
-0x000000000040012f: (unknown)
-0x00000000004003c5: (unknown)
-0x0000000000400e66: (unknown)
+Test output failed to match any acceptable form.
+
+Acceptable output:
+  (rox-multichild) begin
+  (rox-multichild) open "child-rox"
+  (rox-multichild) read "child-rox"
+  (rox-multichild) write "child-rox"
+  (rox-multichild) exec "child-rox 5"
+  (child-rox) begin
+  (child-rox) try to write "child-rox"
+  (child-rox) exec "child-rox 4"
+  (child-rox) begin
+  (child-rox) try to write "child-rox"
+  (child-rox) exec "child-rox 3"
+  (child-rox) begin
+  (child-rox) try to write "child-rox"
+  (child-rox) exec "child-rox 2"
+  (child-rox) begin
+  (child-rox) try to write "child-rox"
+  (child-rox) exec "child-rox 1"
+  (child-rox) begin
+  (child-rox) try to write "child-rox"
+  (child-rox) try to write "child-rox"
+  (child-rox) end
+  child-rox: exit(12)
+  (child-rox) try to write "child-rox"
+  (child-rox) end
+  child-rox: exit(12)
+  (child-rox) try to write "child-rox"
+  (child-rox) end
+  child-rox: exit(12)
+  (child-rox) try to write "child-rox"
+  (child-rox) end
+  child-rox: exit(12)
+  (child-rox) try to write "child-rox"
+  (child-rox) end
+  child-rox: exit(12)
+  (rox-multichild) write "child-rox"
+  (rox-multichild) end
+  rox-multichild: exit(0)
+Differences in `diff -u' format:
+  (rox-multichild) begin
+  (rox-multichild) open "child-rox"
+  (rox-multichild) read "child-rox"
+- (rox-multichild) write "child-rox"
+- (rox-multichild) exec "child-rox 5"
+- (child-rox) begin
+- (child-rox) try to write "child-rox"
+- (child-rox) exec "child-rox 4"
+- (child-rox) begin
+- (child-rox) try to write "child-rox"
+- (child-rox) exec "child-rox 3"
+- (child-rox) begin
+- (child-rox) try to write "child-rox"
+- (child-rox) exec "child-rox 2"
+- (child-rox) begin
+- (child-rox) try to write "child-rox"
+- (child-rox) exec "child-rox 1"
+- (child-rox) begin
+- (child-rox) try to write "child-rox"
+- (child-rox) try to write "child-rox"
+- (child-rox) end
+- child-rox: exit(12)
+- (child-rox) try to write "child-rox"
+- (child-rox) end
+- child-rox: exit(12)
+- (child-rox) try to write "child-rox"
+- (child-rox) end
+- child-rox: exit(12)
+- (child-rox) try to write "child-rox"
+- (child-rox) end
+- child-rox: exit(12)
+- (child-rox) try to write "child-rox"
+- (child-rox) end
+- child-rox: exit(12)
+- (rox-multichild) write "child-rox"
+- (rox-multichild) end
+- rox-multichild: exit(0)
++ rox-multichild: exit(-1)

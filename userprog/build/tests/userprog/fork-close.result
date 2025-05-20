@@ -19,3 +19,4 @@ Differences in `diff -u' format:
 - (fork-close) Parent success
 - (fork-close) end
 - fork-close: exit(0)
++ fork-close: exit(-1)

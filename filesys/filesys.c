@@ -7,9 +7,13 @@
 #include "filesys/inode.h"
 #include "filesys/directory.h"
 #include "devices/disk.h"
+#include "threads/synch.h"
 
 /* The disk that contains the file system. */
 struct disk *filesys_disk;
+
+// read 시스템 콜 추가하는데 만듦 / 5.20
+struct lock filesys_lock;
 
 static void do_format(void);
 
@@ -20,7 +24,7 @@ void filesys_init(bool format)
 	filesys_disk = disk_get(0, 0);
 	if (filesys_disk == NULL)
 		PANIC("hd0:1 (hdb) not present, file system initialization failed");
-
+	lock_init(&filesys_lock);
 	inode_init();
 
 #ifdef EFILESYS
@@ -59,11 +63,39 @@ void filesys_done(void)
  * or if internal memory allocation fails. */
 bool filesys_create(const char *name, off_t initial_size)
 {
+	// printf("[DEBUG] filesys_create: name='%s'\n", name);
+
 	disk_sector_t inode_sector = 0;
 	struct dir *dir = dir_open_root();
-	bool success = (dir != NULL && free_map_allocate(1, &inode_sector) && inode_create(inode_sector, initial_size) && dir_add(dir, name, inode_sector));
+
+	if (dir == NULL)
+	{
+		// printf("[DEBUG] dir_open_root() FAILED\n");
+		return false;
+	}
+
+	bool alloc_ok = free_map_allocate(1, &inode_sector);
+	// printf("[DEBUG] free_map_allocate(): %s\n", alloc_ok ? "OK" : "FAIL");
+
+	bool inode_ok = false;
+	if (alloc_ok)
+	{
+		inode_ok = inode_create(inode_sector, initial_size);
+		// printf("[DEBUG] inode_create(): %s\n", inode_ok ? "OK" : "FAIL");
+	}
+
+	bool dir_ok = false;
+	if (alloc_ok && inode_ok)
+	{
+		dir_ok = dir_add(dir, name, inode_sector);
+		// printf("[DEBUG] dir_add(): %s\n", dir_ok ? "OK" : "FAIL");
+	}
+
+	bool success = alloc_ok && inode_ok && dir_ok;
+
 	if (!success && inode_sector != 0)
 		free_map_release(inode_sector, 1);
+
 	dir_close(dir);
 
 	return success;

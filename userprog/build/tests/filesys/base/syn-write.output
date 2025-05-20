@@ -15,13 +15,14 @@ Putting 'child-syn-wrt' into the file system...
 Executing 'syn-write':
 (syn-write) begin
 (syn-write) create "stuff"
+syn-write: exit(-1)
 Execution of 'syn-write' complete.
-Timer: 350 ticks
-Thread: 56 idle ticks, 290 kernel ticks, 5 user ticks
-hd0:0: 0 reads, 0 writes
-hd0:1: 111 reads, 495 writes
+Timer: 2112 ticks
+Thread: 2057 idle ticks, 46 kernel ticks, 9 user ticks
+hd0:0: 128 reads, 476 writes
+hd0:1: 0 reads, 0 writes
 hd1:0: 226 reads, 0 writes
-Console: 901 characters output
+Console: 923 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

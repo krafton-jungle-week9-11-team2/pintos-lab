@@ -14,24 +14,17 @@ Putting 'rox-simple' into the file system...
 Executing 'rox-simple':
 (rox-simple) begin
 (rox-simple) open "rox-simple"
-Page fault at 0: not present error reading page in kernel context.
-Interrupt 0x0e (#PF Page-Fault Exception) at rip=800421cf41
- cr2=0000000000000000 error=               0
-rax 0000000000000000 rbx 0000000000000000 rcx 0000000000000010 rdx 0000000000000000
-rsp 000000800423feb0 rbp 000000800423fed0 rsi 0000000000000000 rdi 000000800423b038
-rip 000000800421cf41 r8 0000000000000000  r9 0000000000000000 r10 0000000000000000
-r11 0000000000000216 r12 000000800421cf84 r13 0000000000000000 r14 0000000000000000
-r15 0000000000000000 rflags 00000246
-es: 001b ds: 001b cs: 0008 ss: 0010
-Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0x8004217f31 0x800421c7d4 0x800421c953 0x8004208f14 0x8004209332 0x800421cebc 0x800421d093 0x800421c9c8 0x400121 0x400252 0x400cf3.
-The `backtrace' program can make call stacks useful.
-Read "Backtraces" in the "Debugging Tools" chapter
-of the Pintos documentation for more information.
-Timer: 315 ticks
-Thread: 49 idle ticks, 252 kernel ticks, 14 user ticks
-hd0:0: 0 reads, 0 writes
-hd0:1: 83 reads, 234 writes
+(rox-simple) read "rox-simple"
+(rox-simple) try to write "rox-simple"
+(rox-simple) try to write "rox-simple": FAILED
+rox-simple: exit(1)
+Execution of 'rox-simple' complete.
+Timer: 2091 ticks
+Thread: 2031 idle ticks, 48 kernel ticks, 13 user ticks
+hd0:0: 80 reads, 214 writes
+hd0:1: 0 reads, 0 writes
 hd1:0: 103 reads, 0 writes
-Console: 1787 characters output
-Key
+Console: 983 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...

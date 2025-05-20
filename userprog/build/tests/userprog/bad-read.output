@@ -24,12 +24,12 @@ r11 0000000000000206 r12 0000000000000000 r13 0000000000000000 r14 0000000000000
 r15 0000000000000000 rflags 00000212
 es: 001b ds: 001b cs: 0023 ss: 001b
 Execution of 'bad-read' complete.
-Timer: 343 ticks
-Thread: 51 idle ticks, 280 kernel ticks, 13 user ticks
-hd0:0: 0 reads, 0 writes
-hd0:1: 80 reads, 234 writes
+Timer: 2091 ticks
+Thread: 2028 idle ticks, 48 kernel ticks, 16 user ticks
+hd0:0: 76 reads, 214 writes
+hd0:1: 0 reads, 0 writes
 hd1:0: 103 reads, 0 writes
-Console: 1441 characters output
+Console: 1443 characters output
 Keyboard: 0 keys pressed
 Exception: 1 page faults
 Powering off...

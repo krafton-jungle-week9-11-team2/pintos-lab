@@ -4,7 +4,7 @@ Kernel command line: -q -f put bad-write run bad-write
 Pintos booting with: 
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
-Calibrating timer...  32,716,800 loops/s.
+Calibrating timer...  52,377,600 loops/s.
 hd0:0: detected 313 sector (156 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 102 sector (51 kB) disk, model "QEMU HARDDISK", serial "QM00003"
@@ -24,12 +24,12 @@ r11 0000000000000206 r12 0000000000000000 r13 0000000000000000 r14 0000000000000
 r15 0000000000000000 rflags 00000212
 es: 001b ds: 001b cs: 0023 ss: 001b
 Execution of 'bad-write' complete.
-Timer: 345 ticks
-Thread: 50 idle ticks, 282 kernel ticks, 14 user ticks
-hd0:0: 0 reads, 0 writes
-hd0:1: 80 reads, 232 writes
+Timer: 2087 ticks
+Thread: 2032 idle ticks, 40 kernel ticks, 16 user ticks
+hd0:0: 76 reads, 212 writes
+hd0:1: 0 reads, 0 writes
 hd1:0: 102 reads, 0 writes
-Console: 1448 characters output
+Console: 1450 characters output
 Keyboard: 0 keys pressed
 Exception: 1 page faults
 Powering off...

@@ -11,14 +11,17 @@
 #include "userprog/process.h"
 #include <syscall-nr.h>
 #include "filesys/filesys.h"
-#include "threads/synch.h" // 이게 있어야 struct lock 인식 가능
+
 #include "threads/palloc.h"
+#include "threads/synch.h" // 🔥 struct lock 정의 들어 있음
 
 extern struct lock filesys_lock;
 
 void syscall_entry(void);
 void syscall_handler(struct intr_frame *);
 void halt(void) NO_RETURN;
+int read(int fd, void *buffer, unsigned size);
+extern struct lock filesys_lock;
 
 /* System call.
  *
@@ -202,7 +205,30 @@ int open(const char *file)
 	}
 	return fd;
 }
+int read(int fd, void *buffer, unsigned size)
+{
+	check_address(buffer);
 
+	if (fd == 1)
+		return -1;
+
+	if (fd == 0)
+	{
+		for (unsigned i = 0; i < size; i++)
+			((char *)buffer)[i] = input_getc();
+		return size;
+	}
+
+	struct file *file_fd = find_file_by_fd(fd);
+	if (file_fd == NULL) // 🔥 이거 필수!!
+		return -1;
+
+	lock_acquire(&filesys_lock);
+	int read_result = file_read(file_fd, buffer, size);
+	lock_release(&filesys_lock);
+
+	return read_result;
+}
 void syscall_handler(struct intr_frame *f UNUSED)
 {
 	uint64_t number = f->R.rax;
@@ -236,7 +262,9 @@ void syscall_handler(struct intr_frame *f UNUSED)
 	case SYS_CLOSE:
 		close(f->R.rdi);
 		break;
-
+	case SYS_READ:
+		f->R.rax = read(f->R.rdi, f->R.rsi, f->R.rdx);
+		break;
 	default:
 		exit(-1);
 		// NOT_REACHED();
