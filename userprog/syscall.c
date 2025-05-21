@@ -227,14 +227,13 @@ int filesize(int fd) {
  * @param size: 복사할 크기.
  */
 int read(int fd, void *buffer, unsigned size){
-	// 얼리 리턴 & 얼리 엑시트
+	// 1. 주소 범위 검증
+	check_address(buffer);
+    check_address(buffer + size-1); 
     if (size == 0)
         return 0;
     if (buffer == NULL || !is_user_vaddr(buffer))
         exit(-1);
-
-	// 1. 주소 범위 검증
-	check_address(buffer);
 
     // 2. stdin (fd == 0)일 경우
     if (fd == STDIN_FILENO) {
@@ -277,71 +276,71 @@ void syscall_init (void) {
 
 /* The main system call interface */
 void syscall_handler (struct intr_frame *f UNUSED) {
-	int syscall_n = (int) f->R.rax; // 시스템 콜 번호 받아옴
+	int sys_call_number = (int) f->R.rax; // 시스템 콜 번호 받아옴
 
 	/*
 	 x86-64 규약은 함수가 리턴하는 값을 "rax 레지스터"에 담음. 다른 인자들은 rdi, rsi 등 다른 레지스터로 전달.
 	 시스템 콜들 중 값 반환이 필요한 것은, struct intr_frame의 rax 멤버 수정을 통해 구현
 	 */
-	switch (syscall_n) {		//  system call number가 rax에 있음.
+	switch (sys_call_number) {		//  system call number가 rax에 있음.
 		case SYS_HALT:
 			// printf("SYS_HALT [%d]", syscall_n);
 			halt();	 // Pintos 자체를 종료
 			break;
 		case SYS_EXIT:
-			// printf("SYS_EXIT [%d]", syscall_n);
+			// printf("SYS_EXIT [%d]", sys_call_number);
 			exit(f->R.rdi);	// 현재 프로세스를 종료
 			break;
 		case SYS_FORK:
-			// printf("SYS_FORK [%d]", syscall_n);
+			// printf("SYS_FORK [%d]", sys_call_number);
 			f->R.rax = fork(f->R.rdi, f);
 			break;
 		case SYS_EXEC:
-			// printf("SYS_EXEC [%d]", syscall_n);
+			// printf("SYS_EXEC [%d]", sys_call_number);
 			f->R.rax = exec(f->R.rdi);
        		break;
 		case SYS_WAIT:
-			// printf("SYS_WAIT [%d]", syscall_n);
+			// printf("SYS_WAIT [%d]", sys_call_number);
 			f->R.rax = process_wait(f->R.rdi);
 			break;
 		case SYS_CREATE:
-			// printf("SYS_CREATE [%d]", syscall_n);
+			// printf("SYS_CREATE [%d]", sys_call_number);
 			f->R.rax = create(f->R.rdi, f->R.rsi);
 			break;
 		case SYS_REMOVE:
-			// printf("SYS_REMOVE [%d]", syscall_n);
+			// printf("SYS_REMOVE [%d]", sys_call_number);
 			f->R.rax = remove(f->R.rdi);
 			break;
 		case SYS_OPEN:
-			// printf("SYS_OPEN [%d]", syscall_n);
+			// printf("SYS_OPEN [%d]", sys_call_number);
     		f->R.rax = open((const char *)f->R.rdi);
 			break;
 		case SYS_FILESIZE:
-			// printf("SYS_FILESIZE [%d]", syscall_n);
+			// printf("SYS_FILESIZE [%d]", sys_call_number);
 			f->R.rax = filesize(f->R.rdi);
 			break;
 		case SYS_READ:
-			// printf("SYS_READ [%d]", syscall_n);
+			// printf("SYS_READ [%d]", sys_call_number);
 			f->R.rax = read(f->R.rdi, f->R.rsi, f->R.rdx);
 			break;
 		case SYS_WRITE:
-			// printf("SYS_WRITE [%d]", syscall_n);
+			// printf("SYS_WRITE [%d]", sys_call_number);
 			f->R.rax = write(f->R.rdi, f->R.rsi, f->R.rdx);
 			break;
 		case SYS_SEEK:
-			// printf("SYS_SEEK [%d]", syscall_n);
+			// printf("SYS_SEEK [%d]", sys_call_number);
 			seek(f->R.rdi, f->R.rsi);
 			break;
 		// case SYS_TELL:
-		//	printf("SYS_HALT [%d]", syscall_n);
+		//	printf("SYS_HALT [%d]", sys_call_number);
 		// 	f->R.rax = tell(f->R.rdi);
 		// 	break;
 		case SYS_CLOSE:
-			// printf("SYS_CLOSE [%d]", syscall_n);
+			// printf("SYS_CLOSE [%d]", sys_call_number);
 			close(f->R.rdi);
 			break;
 		default:
-			printf("FATAL: UNDEFINED SYSTEM CALL!, %d", syscall_n);
+			printf("FATAL: UNDEFINED SYSTEM CALL!, %d", sys_call_number);
 			exit(-1);
 			break;
 	}

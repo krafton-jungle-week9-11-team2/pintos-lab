@@ -136,7 +136,7 @@ struct thread {
     struct list child_list;        // 자신의 자식 목록
     struct list_elem child_elem;   // 부모의 child_list에 들어갈 때 사용하는 노드
 
-	struct semaphore load_sema; // 현재 스레드가 load되는 동안 부모가 기다리게 하기 위한 semaphore
+	struct semaphore load_sema; // 동기화 대기용 세마포어
 	struct semaphore exit_sema;
 	struct semaphore wait_sema;
 

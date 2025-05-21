@@ -166,8 +166,7 @@ tid_t process_fork (const char *name, struct intr_frame *if_ UNUSED) {
 #ifndef VM
 /* Duplicate the parent's address space by passing this function to the
  * pml4_for_each. This is only for the project 2. */
-static bool
-duplicate_pte (uint64_t *pte, void *va, void *aux) {
+static bool duplicate_pte (uint64_t *pte, void *va, void *aux) {
 	struct thread *current = thread_current ();
 	struct thread *parent = (struct thread *) aux;
 	void *parent_page;
@@ -219,7 +218,14 @@ static void __do_fork (void *aux) { // 여기서 aux가 부모.
 
 	/* 1. Read the cpu context to local stack. */
 	memcpy (&if_, parent_if, sizeof (struct intr_frame));
-	if_.R.rax = 0; // 자식 프로세스의 리턴값은 0
+    /**주의: if_.R.rax = 0;는 반드시 필요.
+     * 이유:
+     *  부모 프로세스의 fork()는 자식의 pid를 리턴하나,
+     *  자식 프로세스의 fork() 리턴값은 0이 되어야 한다. (UNIX/POSIX fork 규약과 동일)
+     *  따라서, 자식에서 실행되는 코드(여기 __do_fork)에서는
+     *  rax 레지스터를 0으로 설정하여 '자식 프로세스임'을 알린다.
+    */
+	if_.R.rax = 0;
 
 	/* 2. Duplicate PT */
 	current->pml4 = pml4_create();
@@ -301,7 +307,6 @@ void argument_stack(char **argv, int argc, void **rsp) {
 	**(void ***)rsp = 0;
 }
 
-
 /* Switch the current execution context to the f_name.
  * Returns -1 on fail. */
 int process_exec (void *f_name) {
@@ -354,7 +359,6 @@ int process_exec (void *f_name) {
     NOT_REACHED();
 }
 
-
 /* Waits for thread TID to die and returns its exit status.  If
  * it was terminated by the kernel (i.e. killed due to an
  * exception), returns -1.  If TID is invalid or if it was not a
@@ -369,7 +373,7 @@ int process_wait (tid_t child_tid UNUSED) {
 	 * XXX:       to add infinite loop here before
 	 * XXX:       implementing the process_wait. */
 
-	struct thread *cur = thread_current();
+	// struct thread *curr = thread_current();
 	struct thread *child = process_get_child(child_tid);
 
 	if (child == NULL)
@@ -380,13 +384,13 @@ int process_wait (tid_t child_tid UNUSED) {
 	list_remove(&child->child_elem);
 	sema_up(&child->exit_sema);
 
-	return exit_status;
 
 	// for(int i=0;i<100000000;i++)
 	// 	for(int j=0;j<10;j++);
 	// timer_msleep(2000); // 2000 ms면 뭐라도 하겠지
+	// 
 
-	// return -1;
+	return exit_status;
 }
 
 /* Exit the process. This function is called by thread_exit (). */
@@ -598,15 +602,23 @@ static bool load (const char *file_name, struct intr_frame *if_) {
 		}
 	}
 
+	/* TODO: Your code goes here.
+	 * TODO: Implement argument passing (see project2/argument_passing.html). */
+
+	// project 2. user programs - rox ~
+	// 현재 스레드의 실행 중인 파일에 이 파일을 추가.
+	t->running = file;
+
+	// 지금 읽고 있는 실행 파일에 뭐 쓰면 안되니까.
+	file_deny_write(file); // 해당 파일을 쓰기 금지로 등록
+	// ~ project 2. user programs - rox
+
 	/* Set up stack. */
 	if (!setup_stack (if_))
 		goto done;
 
 	/* Start address. */
 	if_->rip = ehdr.e_entry;
-
-	/* TODO: Your code goes here.
-	 * TODO: Implement argument passing (see project2/argument_passing.html). */
 
 	success = true;
 
