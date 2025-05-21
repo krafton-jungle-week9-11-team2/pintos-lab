@@ -1,6 +1,10 @@
 .vscode
 .vscode/*
 
+*/build/tests/**/*.output
+*/build/tests/**/*.errors
+*/build/tests/**/*.result
+
 # MacOS
 .DS_Store
 .AppleDouble

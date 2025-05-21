@@ -381,6 +381,7 @@ int process_wait (tid_t child_tid UNUSED) {
 	
 	sema_down(&child->wait_sema); 
 	int exit_status = child->exit_status;
+	timer_msleep(1);
 	list_remove(&child->child_elem);
 	sema_up(&child->exit_sema);
 
