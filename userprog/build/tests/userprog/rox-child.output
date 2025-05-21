@@ -13,13 +13,17 @@ Boot complete.
 Putting 'rox-child' into the file system...
 Putting 'child-rox' into the file system...
 Executing 'rox-child':
+(rox-child) begin
+(rox-child) open "child-rox"
+(rox-child) open "child-rox": FAILED
+rox-child: exit(1)
 Execution of 'rox-child' complete.
-Timer: 60 ticks
-Thread: 34 idle ticks, 27 kernel ticks, 0 user ticks
+Timer: 360 ticks
+Thread: 333 idle ticks, 25 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 61 reads, 478 writes
+hd0:1: 108 reads, 478 writes
 hd1:0: 220 reads, 0 writes
-Console: 846 characters output
+Console: 952 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

@@ -12,13 +12,18 @@ Formatting file system...done.
 Boot complete.
 Putting 'sm-create' into the file system...
 Executing 'sm-create':
+(sm-create) begin
+(sm-create) create "blargle"
+(sm-create) open "blargle" for verification
+(sm-create) open "blargle" for verification: FAILED
+sm-create: exit(1)
 Execution of 'sm-create' complete.
-Timer: 58 ticks
-Thread: 32 idle ticks, 26 kernel ticks, 0 user ticks
+Timer: 356 ticks
+Thread: 331 idle ticks, 23 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 34 reads, 242 writes
+hd0:1: 103 reads, 266 writes
 hd1:0: 107 reads, 0 writes
-Console: 787 characters output
+Console: 952 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...
