@@ -275,6 +275,9 @@ void syscall_handler(struct intr_frame *f UNUSED)
 	case SYS_READ:
 		f->R.rax = read(f->R.rdi, f->R.rsi, f->R.rdx);
 		break;
+	case SYS_WAIT:
+		f->R.rax = process_wait(f->R.rdi);
+		break;
 	default:
 		exit(-1);
 		// NOT_REACHED();
