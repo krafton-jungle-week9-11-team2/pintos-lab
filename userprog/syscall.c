@@ -98,25 +98,19 @@ int write(int fd, const void *buffer, unsigned size)
 
 	return write_result;
 }
-int exec(char *file_name)
+int exec(const char *cmd_line)
 {
-	check_address(file_name);
+	check_address(cmd_line);
 
-	int file_size = strlen(file_name) + 1;
-	char *fn_copy = palloc_get_page(PAL_ZERO);
-	if (fn_copy == NULL)
-	{
+	char *cmd_line_copy = palloc_get_page(0);
+	if (cmd_line_copy == NULL)
 		exit(-1);
-	}
-	strlcpy(fn_copy, file_name, file_size);
+	strlcpy(cmd_line_copy, cmd_line, PGSIZE);
 
-	if (process_exec(fn_copy) == -1)
-	{
-		return -1;
-	}
+	if (process_exec(cmd_line_copy) == -1)
+		exit(-1);
 
 	NOT_REACHED();
-	return 0;
 }
 
 bool create(const char *file, unsigned initial_size)
@@ -178,6 +172,7 @@ void close(int fd)
 	}
 	remove_file_from_fdt(fd);
 }
+
 int add_file_to_fdt(struct file *file)
 {
 	struct thread *cur = thread_current();
@@ -268,6 +263,9 @@ void syscall_handler(struct intr_frame *f UNUSED)
 		break;
 	case SYS_FILESIZE:
 		f->R.rax = filesize(f->R.rdi);
+		break;
+	case SYS_EXEC:
+		f->R.rax = exec(f->R.rdi);
 		break;
 	case SYS_CLOSE:
 		close(f->R.rdi);

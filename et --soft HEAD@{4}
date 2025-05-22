@@ -1,0 +1,18 @@
+[33ma2995bc[m[33m ([m[1;36mHEAD -> [m[1;32mnew_subin[m[33m)[m HEAD@{0}: commit: ss
+[33m124a7c1[m[33m ([m[1;31morigin/feature/subin[m[33m)[m HEAD@{1}: reset: moving to 124a7c1
+[33maa74c61[m[33m ([m[1;31morigin/new_subin[m[33m, [m[1;32mfeature/subin[m[33m)[m HEAD@{2}: checkout: moving from feature/subin to new_subin
+[33maa74c61[m[33m ([m[1;31morigin/new_subin[m[33m, [m[1;32mfeature/subin[m[33m)[m HEAD@{3}: commit: 중간작업 중
+[33m124a7c1[m[33m ([m[1;31morigin/feature/subin[m[33m)[m HEAD@{4}: commit: write구현
+[33m5da1305[m HEAD@{5}: commit: read까지 구현
+[33m9b256e9[m[33m ([m[1;32mweek10subin[m[33m)[m HEAD@{6}: checkout: moving from week10subin to feature/subin
+[33m9b256e9[m[33m ([m[1;32mweek10subin[m[33m)[m HEAD@{7}: commit: create까지 all pass 나머지 구현중
+[33m07d537e[m[33m ([m[1;32mmain[m[33m)[m HEAD@{8}: reset: moving to HEAD@{7}
+[33m07d537e[m[33m ([m[1;32mmain[m[33m)[m HEAD@{9}: reset: moving to 07d537e
+[33mbcd4698[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{10}: reset: moving to origin/main
+[33mee60918[m[33m ([m[1;31morigin/destroy-code-subin[m[33m)[m HEAD@{11}: reset: moving to origin/destroy-code-subin
+[33m8d8609f[m[33m ([m[1;31morigin/week10subin[m[33m)[m HEAD@{12}: reset: moving to origin/week10subin
+[33m8d8609f[m[33m ([m[1;31morigin/week10subin[m[33m)[m HEAD@{13}: commit: halt, write, exit 함수구현
+[33mbcd4698[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{14}: reset: moving to origin/main
+[33m07d537e[m[33m ([m[1;32mmain[m[33m)[m HEAD@{15}: checkout: moving from main to week10subin
+[33m07d537e[m[33m ([m[1;32mmain[m[33m)[m HEAD@{16}: commit: 작업중
+[33mbcd4698[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{17}: clone: from https://github.com/krafton-jungle-week9-11-team2/pintos-lab.git
