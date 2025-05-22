@@ -15,7 +15,7 @@ Executing 'fork-once':
 (fork-once) begin
 Execution of 'fork-once' complete.
 Timer: 357 ticks
-Thread: 333 idle ticks, 23 kernel ticks, 1 user ticks
+Thread: 332 idle ticks, 24 kernel ticks, 1 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 80 reads, 236 writes
 hd1:0: 104 reads, 0 writes

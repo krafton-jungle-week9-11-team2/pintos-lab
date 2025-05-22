@@ -281,6 +281,7 @@ thread_unblock (struct thread *t) {
 const char *
 thread_name (void) {
 	return thread_current ()->name;
+	//thread 구조체에 접근해서 name알아오기
 }
 
 /* Returns the running thread.
@@ -506,7 +507,7 @@ void check_and_preempt (void) {
 	struct thread *curr = thread_current();
 	struct thread *ready = list_entry(list_front(&ready_list), struct thread, elem);
 
-	if (curr->priority < ready->priority)
+	if (!intr_context()&&(curr->priority < ready->priority))
 		thread_yield(); // ready_list에 현재 실행 중인 스레드보다 우선순위가 높은 스레드가 있으면 양보시킴.
 }
 /*-- Priority CondVar 과제 --*/
@@ -621,7 +622,7 @@ do_iret (struct intr_frame *tf) {
 			"movw 8(%%rsp),%%ds\n"
 			"movw (%%rsp),%%es\n"
 			"addq $32, %%rsp\n"
-			"iretq"
+			"iretq" // 이 명령어로 유저모드 실행을 시작한다. 
 			: : "g" ((uint64_t) tf) : "memory");
 }
 

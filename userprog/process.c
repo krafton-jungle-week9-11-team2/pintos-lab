@@ -1,4 +1,3 @@
-#include "userprog/process.h"
 #include <debug.h>
 #include <inttypes.h>
 #include <round.h>
@@ -18,6 +17,8 @@
 #include "threads/mmu.h"
 #include "threads/vaddr.h"
 #include "intrinsic.h"
+#include "userprog/process.h" // 잡았다 요놈!
+#include "userprog/syscall.h"
 #ifdef VM
 #include "vm/vm.h"
 #endif
@@ -39,9 +40,6 @@
  
  -ELF란 ?: ELF는 많은 운영체제에서 목적 파일,공유 라이브러리, 
         그리고 실행파일들을 위해 사용되는 파일 포맷
- -
-
-
 
 ===========================================================
 */
@@ -50,12 +48,15 @@ static void process_cleanup (void);
 static bool load (const char *file_name, struct intr_frame *if_);
 static void initd (void *f_name);
 static void __do_fork (void *);
+void argument_stack_user(char **argv,int argc,void **rsp );
 
 /* General process initializer for initd and other process. */
 static void
 process_init (void) {
 	struct thread *current = thread_current ();
 }
+
+
 
 /* Starts the first userland program, called "initd", loaded from FILE_NAME.
  * The new thread may be scheduled (and may even exit)
@@ -67,18 +68,52 @@ process_create_initd (const char *file_name) {
 	char *fn_copy;
 	tid_t tid;
 
-	/* Make a copy of FILE_NAME.
-	 * Otherwise there's a race between the caller and load(). */
+	/*
+	
+	 Make a copy of FILE_NAME.
+	 Otherwise there's a race between the caller and load(). 
+	 
+	 FILE_NAME의 사본을 만든다
+	 그렇지 않으면 호출자와 load() 사이에 경쟁(race)이 발생
+	 
+	 */
 	fn_copy = palloc_get_page (0);
 	if (fn_copy == NULL)
 		return TID_ERROR;
 	strlcpy (fn_copy, file_name, PGSIZE);
 
+    /*
+	==========================================
+	make check에서 이 함수를 통해 
+	process_create를 실행 하기 때문에
+
+	이 부분을 수정해주지 않으면 Test Case의 
+	Thread_name이 커맨드 라인 전체로 바뀌게 되어 
+	Pass할 수 없다.
+	
+	==========================================
+	*/
+    // char *ptr;
+	// strtok_r(file_name," ",&ptr); //공백 기준으로 나누기 !
+    
+  char *save_ptr;
+  strtok_r(file_name," ",&save_ptr);
+  /*
+  ====================================
+     make check 통과하기 위한 코드
+  ====================================
+  */
+//   char thread_name[128];  // 스레드 이름 임시 저장할 버퍼
+//   strlcpy(thread_name, file_name, sizeof thread_name);
+//   char *program_name = strtok_r(thread_name, " ", &save_ptr);
+
 	/* Create a new thread to execute FILE_NAME. */
-	tid = thread_create (file_name, PRI_DEFAULT, initd, fn_copy);
-	if (tid == TID_ERROR)
-		palloc_free_page (fn_copy);
-	return tid;
+	//새 커널 스레드를 만든다.
+  tid = thread_create (file_name, PRI_DEFAULT, initd, fn_copy);
+  if (tid == TID_ERROR){
+	palloc_free_page (fn_copy);
+  }
+  return tid;
 }
 
 /* A thread function that launches first user process. */
@@ -100,8 +135,8 @@ initd (void *f_name) {
 tid_t
 process_fork (const char *name, struct intr_frame *if_ UNUSED) {
 	/* Clone current thread to new thread.*/
-	return thread_create (name,
-			PRI_DEFAULT, __do_fork, thread_current ());
+	    return thread_create (name,
+			            PRI_DEFAULT, __do_fork, thread_current ());
 }
 
 #ifndef VM
@@ -182,8 +217,110 @@ error:
 	thread_exit ();
 }
 
-/* Switch the current execution context to the f_name.
- * Returns -1 on fail. */
+void argument_stack_user(char **argv,int argc,void **rsp ){
+	//printf("Parsed arguments (count = %d):\n",argv); //for debugging
+	// for (int i = 0; i < argc; i++) {
+    //     printf("parse[%d] = \"%s\"\n", i, argv[i]);
+    // }
+	
+	char *sp = (char *)(*rsp); //rsp를 char*로 캐스팅해서 게산용으로 사용
+
+	for(int i=argc -1; i>=0; i--){ 
+		//인자가 3개면 배열이니까 argv[2]부터
+		int N =strlen(argv[i]) + 1 ; 
+		sp -= N;
+		memcpy(sp,argv[i],N);
+		argv[i] =sp; // 문자열이 복사된 주소 저장
+		/*
+		null 종료 문자까지 +1 
+		N: argv[i] 가 메모리에서 차지하는 전체 크기
+		*/
+
+		// //intr_frame
+		// if_->rsp -= N;
+		// memcpy((void*)if_->rsp,argv[i],N); //문자열 복사
+		// argv[i]=(char*)if_->rsp;
+		//일단 글자수 만큼 공간확보하고 rsp줄여주고 문자열 복사
+	}
+
+
+	
+
+	// if(if_->rsp % 8 ){
+	// 	int padding = if_->rsp % 8 ; //8로 나눈 나머지
+	// 	if_->rsp -=padding;
+	// 	//rsp=rsp-padding (8만큼 정렬해주기)
+	// 	memset(if_->rsp,0,padding);
+
+		/*
+		===================================
+		[memset]
+
+		C언어에서 제공하는 표준 라이브러리 함수
+		메모리 영역을 특정 값으로 설정하는 함수
+
+		주로 배열이나 구조체 등의 초기화시 사용
+
+		===================================
+		*/
+	
+
+	//8바이트 정렬해주기
+	uintptr_t align =(uintptr_t)sp % 8;
+	if(align != 0){
+		sp -=align;
+		memset(sp,0,align);
+	}
+
+	sp -=sizeof(char *);
+	memset(sp,0,sizeof(char *));
+
+	// if_->rsp -= 8 ; // 정렬을 위해 
+	// memset(if_->rsp,0,8);
+
+    //put address
+	for(int i = argc -1 ; i>=0; i--){
+		sp -=sizeof(char*);
+		memcpy(sp, &argv[i],sizeof(char*)); 
+		//*(char **)(if_->rsp) = argv[i];
+		//각 인자의 주소(&)저장 해준다.
+		//argv[i]는 char * ,문자열을 가리키는 포인터
+	}
+    
+	//페이크리턴을 넣어준다.
+	sp -=sizeof(void *);
+	memset(sp, 0, sizeof(void *));
+
+
+	//최종 rsp 업데이트 (if_로 접근하는거랑 rsp로 접근하는거랑 차이점 check하기)
+	*rsp = (void *)sp;
+ 
+   
+    /*
+	rdi에 argc값 , rsi에 argv 시작점의 주소를 넣어줌 
+
+	[5/20] 커널패닉 이후 수정 하면서 이 부분 
+    if_->R.rdi =argc;
+	if_->R.rsi =if_->rsp + 8; 
+	*/
+
+}
+
+
+
+
+/* 
+===============================================================
+ * Switch the current execution context to the f_name.
+ * Returns -1 on fail. 
+ 
+ * function to modify -1 int process_exec(void *fname)
+
+ *f_name을 parsing하고 user_stack에 매개변수를 push하는 함수
+
+===============================================================
+ */
+
 int
 process_exec (void *f_name) {
 	char *file_name = f_name;
@@ -200,18 +337,105 @@ process_exec (void *f_name) {
 	/* We first kill the current context */
 	process_cleanup ();
 
-	/* And then load the binary */
-	success = load (file_name, &_if);
+	/* 파일 디스크립터 테이블 초기화 추가 */
+    struct thread *cur = thread_current();
+    cur->fd_table = palloc_get_page(PAL_ZERO);
+    if (cur->fd_table == NULL)
+	exit(-1);
+    cur->next_fd = 2;
 
-	/* If load failed, quit. */
-	palloc_free_page (file_name);
-	if (!success)
+	/*argument parsing*/
+
+	int argc=0; //인자의 개수 명령어 자를 때 증가 시켜주면서 사용
+	char *argv[64]; //배열에 인자 문자열들을 저장
+	// 이 두개의 변수를 이용해서 스택에 push 하면 된다.
+	char *ret_ptr, *next_ptr;
+	//ret_ptr =strtok_r(file_name," ",&next_ptr); 
+
+	//token =ret_ptr , save ptr = next_ptr
+
+    
+	//strtok가 자른 토큰을 가리키는 포인터를 담는 변수
+	/* 
+	=========================================================
+	" " 무조건 공백으로 
+	ex)filename =/bin/ls , next_ptr =-l foo bar 
+
+	[strtok_r]
+	멀티스레딩 환경에서도 안전하게 문자열을 토큰(공백)으로 쪼갬
+
+	[역할]
+	-문자열을 지정한 구분자를 기준으로 나누는 함수
+	-한 번 호출하면 첫 번째 토큰을 반환
+
+	-이후 호출할 때는 NULL을 첫 인자로 주고
+	 계속해서 다음 토큰을 반환함. 
+	=========================================================   
+
+	*/
+
+    for (ret_ptr = strtok_r(file_name, " ", &next_ptr); ret_ptr != NULL; ret_ptr = strtok_r(NULL, " ", &next_ptr)) 
+	    argv[argc++] = ret_ptr;     
+	//argv[argc]=NULL; 
+        
+	//load binary file
+	success = load (file_name, &_if); //스택에 쌓아주기 전에 메모리공간 확보
+
+	// /* If load failed, quit. */
+	// palloc_free_page (file_name);
+	// if (!success){
+	// 	return -1;
+	// }
+
+
+
+	argument_stack_user(argv,argc,&_if.rsp); //function to implement
+	_if.R.rdi =argc;
+	_if.R.rsi =(char *)_if.rsp + 8;
+
+    //hex_dump(_if.rsp, _if.rsp, USER_STACK - _if.rsp, true);
+
+
+
+    palloc_free_page (file_name);
+	if (!success){
 		return -1;
+	}
+	//for debugging
+	
+	/*
+	==============================================
+	
+    void argument_stack_user(char **argv, 
+	int argc, struct intr_frame *if_ )
+
+	-인자값을 스택에 올리는 함수
+
+	==============================================
+	*/
+
+    /* If load failed, quit. */
+	
 
 	/* Start switched process. */
-	do_iret (&_if);
+	do_iret (&_if); //유저 모드로 
 	NOT_REACHED ();
 }
+
+/*
+===============================================
+	
+    void argument_stack_user(char **argv, 
+	int argc, struct intr_frame *if_ )
+
+  -인자값을 스택에 올리는 함수
+  -function to implement 1 - argument parsing
+
+===============================================
+*/
+
+
+
 
 
 /* Waits for thread TID to die and returns its exit status.  If
@@ -228,6 +452,12 @@ process_wait (tid_t child_tid UNUSED) {
 	/* XXX: Hint) The pintos exit if process_wait (initd), we recommend you
 	 * XXX:       to add infinite loop here before
 	 * XXX:       implementing the process_wait. */
+
+	// for(int i=0;i<1000000;i++)
+	//  for(int j=0;j<1000;j++);
+
+	timer_msleep(3000);
+
 	return -1;
 }
 
@@ -239,7 +469,8 @@ process_exit (void) {
 	 * TODO: Implement process termination message (see
 	 * TODO: project2/process_termination.html).
 	 * TODO: We recommend you to implement process resource cleanup here. */
-
+    //if(curr->exit_status != 1)
+	    //printf("%s: exit(%d) \n", curr ->name, curr->exit_status);
 	process_cleanup ();
 }
 
@@ -345,6 +576,7 @@ static bool load_segment (struct file *file, off_t ofs, uint8_t *upage,
  * and its initial stack pointer into *RSP.
  * Returns true if successful, false otherwise. */
 static bool
+// 유저 파일 열고 메모리에 올려주는 함수
 load (const char *file_name, struct intr_frame *if_) {
 	struct thread *t = thread_current ();
 	struct ELF ehdr;
@@ -365,6 +597,9 @@ load (const char *file_name, struct intr_frame *if_) {
 		printf ("load: %s: open failed\n", file_name);
 		goto done;
 	}
+	// /** project2-System Call - 파일 실행 명시 및 접근 금지 설정  */
+    // t->runn_file = file;
+    // file_deny_write(file); /** Project 2: Denying Writes to Executables */
 
 	/* Read and verify executable header. */
 	if (file_read (file, &ehdr, sizeof ehdr) != sizeof ehdr

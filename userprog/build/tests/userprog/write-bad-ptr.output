@@ -15,15 +15,14 @@ Putting 'sample.txt' into the file system...
 Executing 'write-bad-ptr':
 (write-bad-ptr) begin
 (write-bad-ptr) open "sample.txt"
-(write-bad-ptr) open "sample.txt": FAILED
-write-bad-ptr: exit(1)
+write-bad-ptr: exit(-1)
 Execution of 'write-bad-ptr' complete.
-Timer: 356 ticks
-Thread: 331 idle ticks, 23 kernel ticks, 2 user ticks
+Timer: 360 ticks
+Thread: 331 idle ticks, 26 kernel ticks, 3 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 107 reads, 248 writes
+hd0:1: 111 reads, 248 writes
 hd1:0: 105 reads, 0 writes
-Console: 991 characters output
+Console: 950 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

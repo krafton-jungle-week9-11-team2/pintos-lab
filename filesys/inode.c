@@ -13,10 +13,11 @@
 /* On-disk inode.
  * Must be exactly DISK_SECTOR_SIZE bytes long. */
 struct inode_disk {
-	disk_sector_t start;                /* First data sector. */
-	off_t length;                       /* File size in bytes. */
-	unsigned magic;                     /* Magic number. */
-	uint32_t unused[125];               /* Not used. */
+	//파일의 메타 데이터 ! 
+	disk_sector_t start;                /* 파일의 시작 위치 */
+	off_t length;                       /* 파일 크기 */
+	unsigned magic;                     /* 식별용 매직넘버 */
+	uint32_t unused[125];               /* 여유 공간 */
 };
 
 /* Returns the number of sectors to allocate for an inode SIZE
@@ -28,12 +29,26 @@ bytes_to_sectors (off_t size) {
 
 /* In-memory inode. */
 struct inode {
-	struct list_elem elem;              /* Element in inode list. */
-	disk_sector_t sector;               /* Sector number of disk location. */
-	int open_cnt;                       /* Number of openers. */
-	bool removed;                       /* True if deleted, false otherwise. */
-	int deny_write_cnt;                 /* 0: writes ok, >0: deny writes. */
-	struct inode_disk data;             /* Inode content. */
+	struct list_elem elem;              /* list형식 prev & next  */
+    /*
+	=====================================
+	-inode 구조체는 파일 하나에 대한 정보를
+	   담고 있는 파일 메타 데이터 객체
+
+	-filesys.c나 inode.c 등에서는 
+	 여러 inode들을 리스트로 관리함
+
+	-ex)open_inodes 리스트에 모든 열린 
+	    inode들을 연결해 놓음
+	=====================================
+	*/
+
+
+	disk_sector_t sector;               /* 디스크 상의 위치 */
+	int open_cnt;                       /* 열려 있는 횟수  */
+	bool removed;                       /* 삭제 여부 */
+	int deny_write_cnt;                 /* 쓰기 방지 카운터 */
+	struct inode_disk data;             /* 실제 파일 메타데이터 */
 };
 
 /* Returns the disk sector that contains byte offset POS within

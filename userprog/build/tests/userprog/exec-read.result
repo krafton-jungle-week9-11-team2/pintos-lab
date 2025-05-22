@@ -1,2 +1,2 @@
 FAIL
-run: open "sample.txt": FAILED
+run: read "sample.txt" first 20 bytes: FAILED

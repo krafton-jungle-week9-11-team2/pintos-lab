@@ -15,15 +15,15 @@ Putting 'sample.txt' into the file system...
 Executing 'write-zero':
 (write-zero) begin
 (write-zero) open "sample.txt"
-(write-zero) open "sample.txt": FAILED
+(write-zero) write() returned -1 instead of 0: FAILED
 write-zero: exit(1)
 Execution of 'write-zero' complete.
-Timer: 367 ticks
-Thread: 336 idle ticks, 29 kernel ticks, 2 user ticks
+Timer: 362 ticks
+Thread: 330 idle ticks, 29 kernel ticks, 3 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 107 reads, 250 writes
+hd0:1: 111 reads, 250 writes
 hd1:0: 106 reads, 0 writes
-Console: 964 characters output
+Console: 979 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

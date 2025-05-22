@@ -74,7 +74,7 @@ main (void) {
 	bss_init ();
 
 	/* Break command line into arguments and parse options. */
-	argv = read_command_line ();
+	argv = read_command_line ();  // 여기서 command 라인을 읽는다. 
 	argv = parse_options (argv);
 
 	/* Initialize ourselves as a thread so we can use locks,
@@ -87,7 +87,7 @@ main (void) {
 	malloc_init ();
 	paging_init (mem_end);
 
-#ifdef USERPROG
+#ifdef USERPROG  /*project 2부터 실행시켜줄 userprogram*/
 	tss_init ();
 	gdt_init ();
 #endif
@@ -97,16 +97,19 @@ main (void) {
 	timer_init ();
 	kbd_init ();
 	input_init ();
-#ifdef USERPROG
-	exception_init ();
-	syscall_init ();
+#ifdef USERPROG 
+	exception_init (); //예외 처리기 설치
+	syscall_init (); //시스템 콜 인터페이스 설정
 #endif
 	/* Start thread scheduler and enable interrupts. */
-	thread_start ();
+	thread_start (); // 커널 스레드 스케줄러 실행(멀티태스킹 준비)
+	//여기서 부터 인터럽트가 실제로 활성화 된다. 
+
+
 	serial_init_queue ();
 	timer_calibrate ();
 
-#ifdef FILESYS
+#ifdef FILESYS 
 	/* Initialize file system. */
 	disk_init ();
 	filesys_init (format_filesys);
@@ -237,7 +240,14 @@ parse_options (char **argv) {
 /* Runs the task specified in ARGV[1]. */
 static void
 run_task (char **argv) {
-	const char *task = argv[1];
+
+	/*
+	그냥 char * 로 받으면 문자열의 시작주소 받는거임
+	이중 포인터로 받아야 문자열 포인터들의 배열 주소를 받는다. 
+
+	이렇게 해야 커맨드라인 명령어와 인자들을 모두 접근할 수 있다.
+	*/
+const char *task = argv[1];
 
 	printf ("Executing '%s':\n", task);
 #ifdef USERPROG

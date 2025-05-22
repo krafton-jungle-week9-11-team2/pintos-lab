@@ -15,15 +15,16 @@ Executing 'sm-seq-random':
 (sm-seq-random) begin
 (sm-seq-random) create "nibble"
 (sm-seq-random) open "nibble"
-(sm-seq-random) open "nibble": FAILED
+(sm-seq-random) writing "nibble"
+(sm-seq-random) write 561 bytes at offset 0 in "nibble" failed: FAILED
 sm-seq-random: exit(1)
 Execution of 'sm-seq-random' complete.
-Timer: 357 ticks
-Thread: 330 idle ticks, 25 kernel ticks, 2 user ticks
+Timer: 359 ticks
+Thread: 325 idle ticks, 28 kernel ticks, 6 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 103 reads, 266 writes
+hd0:1: 107 reads, 266 writes
 hd1:0: 107 reads, 0 writes
-Console: 955 characters output
+Console: 1021 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

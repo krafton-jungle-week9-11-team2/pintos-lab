@@ -1,22 +1,53 @@
+#include "filesys/filesys.h" // 잡았다 요놈!
+#include "userprog/process.h" // 잡았다 요놈! 
+#include "filesys/file.h" //close때 안해주면 오류남 ! 
+
+#include "threads/palloc.h"
+#include "userprog/syscall.h"
+
+
 #include "userprog/syscall.h"
 #include <stdio.h>
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 #include "threads/loader.h"
+#include "threads/init.h"
 #include "userprog/gdt.h"
 #include "threads/flags.h"
 #include "intrinsic.h"
 
+
 void syscall_entry (void);
 void syscall_handler (struct intr_frame *);
+void check_address(const uint64_t *addr);
+static struct file *process_get_file(int fd);
+//int add_file_to_fdt(struct file *file);
+
+
+/* Forward declarations for system call handlers */
+void halt(void);
+void exit(int status);
+tid_t fork(const char *name, struct intr_frame *f);
+int exec(const char *file_name);
+int open(const char *file);
+bool create(const char *file, unsigned initial_size);
+bool remove(const char *file);
+int filesize(int fd);
+int read(int fd, void *buffer, unsigned size);
+int write(int fd, const void *buffer, unsigned length);
+void seek(int fd, unsigned position);
+unsigned tell(int fd);
+void close(int fd);
+
+
 
 /*
 ========================================================================
   -유저 프로세스가 일부 커널 기능에 접근하려고 할 때 시스템 콜 호출
 
   즉 이 파일에 구현되어 있는 코드들이 !!!!
-
+ 
    ***시스템 콜 핸들러의 기본 구조***
 
   -현재 상태에서는 유저가 시스템 콜을 했을 때 
@@ -42,6 +73,351 @@ void syscall_handler (struct intr_frame *);
 #define MSR_STAR 0xc0000081         /* Segment selector msr */
 #define MSR_LSTAR 0xc0000082        /* Long mode SYSCALL target */
 #define MSR_SYSCALL_MASK 0xc0000084 /* Mask for the eflags */
+
+#define PAL_ZERO 0
+
+/*
+==================================
+ 주소값이 유저 영역 내인지를 검증
+
+     param addr : 주소값
+
+==================================
+*/
+
+void check_address(const uint64_t *addr){
+
+     struct thread *cur = thread_current();
+
+     if(addr == NULL || !(is_user_vaddr(addr)) || pml4_get_page(cur->pml4,addr) == NULL)
+          exit(-1);
+}
+
+
+
+void halt(void){
+     //printf("[kernel] HALT syscall received!\n");
+     power_off();
+     //init.h & init.c 에 구현되어 있음
+     //pintos를 poweroff 하는 함수 
+}
+
+//프로세스 종료 시스템 콜
+void exit(int status){
+
+     struct thread *cur =thread_current();
+     // 현재 스레드 
+     cur->exit_status=status; //정상적 종료시 0
+
+     printf("%s: exit(%d)\n",thread_name(),status);
+     //therad_name 함수는 thread구조체에 접근해서 name 값 가져온다.
+     //트러블 슈팅 (와 이거 한 줄 때문에 args테스트 안됐던 거였음) 
+     thread_exit();
+
+     /*ver1. wait중인 부모 프로세스를 깨울 방법이 없어서 종료상태만
+       저장 후 끝낸다 */
+}
+
+
+/*
+====================================
+write
+
+-buffer로 부터 open file fd로 
+ size 바이트를 적어준다.
+
+-실제로 적힌 바이트의 수를 반환해주고(int)
+ 일부 바이트가 적히지 못했다면 
+ size보다 더 작은 바이트 수가 반환 가능
+
+-더 이상 바이트를 적을 수 없다면 0 반환
+
+-putbuf()를 통해 한번에 호출하여 모든 내용을
+ 버퍼에 담는다.
+====================================
+*/
+
+int write(int fd,const void *buffer,unsigned size)
+{
+    /*
+    ==============================================================
+    ver1 . 임시로 표준출력만 구현 
+
+     *buffer : 유저 공간에 있는 메모리 주소 
+
+     -유저 프로그램이 출력하고자 하는 
+     데이터를 저장한 메모리 버퍼의 시작 주소 지점 ! 
+
+     -유저 프로세스가 관리하는 가상 메모리 상의 주소이며, 
+      이 주소가 커널 내부에서 바로 접근되면 안됨 !
+       =>검증 절차가 반드시 필요함 !
+
+     fd : 파일 디스크 립터 => 출력하려는 대상(콘솔,파일 등)을 가리킴
+     buffer : 출력할 데이터가 담긴 유저 메모리 영역의 포인터
+     size : 출력할 데이터의 크기( 바이트 단위 )
+    ==============================================================
+    */
+     check_address(buffer); // 주소 유효성 검사
+     if(fd == 1)
+     {
+
+          putbuf(buffer,size); //   lib/kernel/console.c 에 있음
+          return size;
+     }
+
+     return -1;
+
+}
+
+/*
+=====================================================
+[create]
+
+-file이라는 이름의 새 파일을 만들고 초기 크기 바이트 설정
+-성공하면 true, 실패라면 flase를 반환
+
+[주의 할 점]
+-새 파일을 만드는 것은 파일을 여는건 아님
+-파일을 여는것은 'open' 이라는 시스템 사용해서 열어야됨
+=====================================================
+*/
+
+
+
+bool create(const char *file, unsigned initial_size) {
+     check_address(file); //유저가 넘겨준 file주소 유효성 검사
+
+     bool success; //반환값 위해 변수 생성
+
+     if(file == NULL || initial_size < 0 ){
+          return 0 ; // 0 이 false임
+     }
+
+     success =filesys_create(file,initial_size);
+     //filesys_create 함수가 다해주는 듯 
+     return success;
+}
+
+
+/*
+===========================================
+        파일을 삭제하는 시스템 콜
+filesys_remove() 사용  (filesys/filesys.c)
+===========================================
+*/
+bool remove(const char *file) {
+     check_address(file);
+     return filesys_remove(file);
+}
+
+
+/*
+=====================================
+현재 프로세스(스레드)의 fd_table(자료구조)
+ => 새로운 파일을 추가하는 함수
+
+-열려 있는 파일 목록에 새 파일을 등록
+-그 파일의 파일 디스크립터 번호를 반환
+
+
+=====================================
+*/
+
+int process_add_file(struct file *file){
+//현재 프로세스의 fdt에 파일(fd)을 추가해주기
+
+     struct thread *curr =thread_current();
+     struct file **fdt = curr ->fd_table;
+
+
+	while(curr->next_fd < FDCOUNT_LIMIT && fdt[curr->next_fd] )
+     {
+          curr->next_fd++;
+     }
+
+     if(curr->next_fd >= FDCOUNT_LIMIT)
+        return -1;
+
+     /*
+     thread 멤버 중 하나인 
+     **fd_table을 가리키기 위한 포인터 **fdt
+     */
+
+
+     /*
+     fd의 위치가 제한 범위를 넘지 않고, 
+     현재 fd_idx 위치에 파일이 이미 있으면 다음 슬롯으로 이동
+     */
+     fdt[curr->next_fd] = file;
+     return curr->next_fd;
+    
+}
+
+
+/*
+======================================
+
+
+======================================
+*/
+
+int open(const char *file) {
+
+    //struct thread *cur = thread_current();
+
+    check_address(file);
+
+    struct file *open_file = filesys_open(file);
+    //open 해준 파일 지정해주는 변수
+
+    if(open_file == NULL){
+       //printf("filesys_open failed for %s\n", file); //추가-디버깅
+       return -1;
+    }
+//     else{
+//      printf("filesys_open succeeded for file: %s\n", file);  // 추가
+//     }
+
+    int fd=process_add_file(open_file);
+    //파일을 열면 fdt에 추가해줘야됨 
+
+    /*
+    
+    새로 구현해줘야 하는 함수
+
+    int add_file_to_fdt(struct file *file)
+    
+    */
+    
+    //fd table 가득 찼다면 파일 닫아주기 ?
+    if(fd == -1){
+       file_close(open_file);
+       //printf("process_add_file failed, fd full or error.\n");  // 추가
+    }
+//     else{
+//       printf("File descriptor allocated: %d\n", fd);  // 추가
+//     }
+    return fd;
+
+}
+
+
+//파일 닫기
+void close(int fd) {
+    return;
+}
+
+
+//파일 크기 구하기
+int filesize(int fd) {
+     int file_len;
+     struct file *temp;
+
+     temp=process_get_file(fd);
+
+     if(temp == NULL)
+        return -1;
+
+     file_len =file_length(temp); 
+     /*
+     ========================================
+               file.c에 구현되어있음
+     타고타고 들어가서 결국 inode_disk에 있는
+     'off_t(int32_t) length' 크기 가져오기 ! 
+     ========================================
+     */
+
+     return file_len;
+    
+}
+
+/*
+==========================================
+
+   파일 디스크립터 fd가 유효한지 검사한 뒤
+   현재 실행 중인 스레드의 fd_table에서
+
+ 해당 fd에 연결된 struct file 포인터를 반환
+
+ fd_table은 현재 프로세스의 열려 있는 파일들의 배열
+
+==========================================
+*/
+
+static struct file *process_get_file(int fd){
+     struct thread *cur =thread_current();
+
+     if(fd < 0 || fd>=FDCOUNT_LIMIT){
+          return NULL;
+     }
+     return cur->fd_table[fd];
+}
+
+
+
+/*
+==========================================
+아래 임시로 적어놓은 함수들
+
+그냥 return 값 -1같이 해놓음
+==========================================
+*/
+
+// 임시 버전: 자식 프로세스 생성 (fork)
+tid_t fork(const char *name, struct intr_frame *f) {
+    return -1;  // 아직 구현 안 됨
+}
+
+/*
+===============================
+[exec]
+현재 프로세스를 커맨드라인에서
+지정된 인수를 전달하여 이름이 
+   지정된 실행 파일로 변경 
+===============================
+*/
+int exec(const char *file_name) {
+
+check_address(file_name);
+
+int file_size =strlen(file_name) + 1; //NULL까지 + 1
+char *fn_copy = palloc_get_page(PAL_ZERO);
+
+
+if (fn_copy == NULL){
+     exit(-1);
+}
+strlcpy(fn_copy,file_name,file_size);
+
+if(process_exec(fn_copy)== -1){
+     return -1;
+}
+NOT_REACHED();
+
+
+return 0;
+}
+
+
+
+// 임시 버전: 파일로부터 읽기
+int read(int fd, void *buffer, unsigned size) {
+    return -1;
+}
+
+// 임시 버전: seek (커서 이동)
+void seek(int fd, unsigned position) {
+    return;
+}
+
+// 임시 버전: 현재 커서 위치
+unsigned tell(int fd) {
+    return 0;
+}
+
+
+
+
 
 void
 syscall_init (void) {
@@ -74,6 +450,142 @@ syscall_init (void) {
 void
 syscall_handler (struct intr_frame *f UNUSED) {
 	// TODO: Your implementation goes here.
-	printf ("system call!\n");
-	thread_exit ();
+	// printf ("system call!\n");
+	// thread_exit ();
+
+   int number =f->R.rax;
+
+   /*
+   =======================================
+     시스템 콜 번호(rax 인자로 전달) 보고
+           실제 커널 함수로 분기
+
+   [ struct intr_fram *f ]
+
+   유저 => 커널로 전환될 때 
+   CPU의 레지스터,플래그,스택 포인터 등 
+   프로세서 상태 전체를 보존해두는 구조체
+
+   이 구조체의 주소가 전달된다. (포인터)
+   =======================================
+   */
+
+   //char *fn_copy;
+   /*
+   =======================================
+   시스템 콜 처리에서 파일명 같은 문자열을 
+   임시로 복사 할 때 사용하는 포인터 변수 
+
+   유저 영역에서 커널 영역으로 안전하게 복사
+
+   복사본을 만들어서 커널 메모리 안에서 
+   안전하게 사용한다. 
+   =======================================
+   */
+
+   switch(number){ //시스템 콜 번호 인자 rax에 넘김
+          case SYS_HALT:
+               halt(); //pintos 자체를 (os)POWER-OFF
+               break;
+          case SYS_EXIT:
+               exit(f->R.rdi);
+               break; //현재 프로세스를 종료
+          case SYS_FORK:
+          /*
+         ======================================================
+         시스템 콜 핸들러에서 리턴값은 rax 레지스터에 저장돼야 한다.
+         fork 함수의 리턴값을 f->R.rax에 저장하는 코드
+
+         fork() 시스템 콜을 실행하고, 그 리턴값을 유저 prog에게 전달
+         rdi는 첫번째 인자
+         ======================================================
+         */
+              f->R.rax = fork(f->R.rdi, f);
+         //f는 위에서 이 핸들러 함수에서 전달해준 프로세서 구조체
+              break;
+
+          case SYS_EXEC:
+          /*
+          =================================================
+           -[f->R.rdi]: 유저 프로그램이 exec("file_name")으로 
+            넘긴 첫 번째 인자(실행할 파일 이름)
+
+           -exec(...) : 그 프로그램을 실행(로딩) 시도
+
+           [실행 결과]
+            * 0 또는 양수 : 성공적인 실행 (보통은 PID나 0)
+            * -1 : 실패 (파일을 못 찾거나 , 잘못된 포맷)
+          =================================================
+          */
+              f->R.rax =exec(f->R.rdi);
+              break;
+          case SYS_WAIT:
+               f->R.rax =process_wait(f->R.rdi);
+               //precess_wait 함수에 첫번째 인자 전달해주기
+               break;
+
+          case SYS_CREATE:
+          /*
+          =====================================================
+          f->R.rdi : 첫 번째 인자 (파일 이름 , const char *file)
+          f->R.rsi : 두 번째 인자 (초과 크기,unsigned initial_size)
+          =====================================================
+          */
+               f->R.rax =create(f->R.rdi,f->R.rsi);
+               break;
+          case SYS_REMOVE:
+               f->R.rax =remove(f->R.rdi);
+               break;
+          case SYS_OPEN: 
+               f->R.rax =open(f->R.rdi);
+               break; //와 이 미친것 여기 break;안해서 그런거였음 
+          case SYS_FILESIZE:
+               f->R.rax = filesize(f->R.rdi);
+               break;
+          case SYS_READ:
+               f->R.rax = read(f->R.rdi,f->R.rsi,f->R.rdx);
+               //첫번째 인자 두번째 인자 세번째 인자
+               break; 
+               /*
+               ======================================
+               int read(int fd ,void *buffer,unsined size);
+               
+               fd : 읽을 파일 디스크립터 (파일을 구분하는 숫자)
+               buffer : 데이터를 읽어들일 메모리 공간
+               size : 몇 바이트를 읽을 것인지 
+               ======================================
+               */
+
+          case SYS_WRITE:
+               f->R.rax = write(f->R.rdi, (const void *)f -> R.rsi, f->R.rdx);
+               break;
+              
+          case SYS_SEEK:
+          /*
+          ==========================================
+          반환할 값이 없나봐 
+
+          "파일의 커서 위치를 바꾼다"는 역할만 하고 
+          별도로 리턴값을 줄 필요는 없음 
+          ==========================================
+          */
+               seek(f->R.rdi ,f->R.rsi);
+               break;
+          case SYS_TELL:
+               f->R.rax = tell(f->R.rdi);
+               break;
+          case SYS_CLOSE:
+               close(f->R.rdi);
+               break;
+          default:
+               exit(-1);
+               break;
+   }
+               
 }
+
+
+
+
+
+

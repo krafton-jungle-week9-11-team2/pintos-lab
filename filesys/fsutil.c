@@ -106,9 +106,11 @@ fsutil_put (char **argv) {
 
 	/* Create destination file. */
 	if (!filesys_create (file_name, size))
+	   // printf("Failed to create file %s\n", file_name);  // 추가
 		PANIC ("%s: create failed", file_name);
 	dst = filesys_open (file_name);
 	if (dst == NULL)
+	   // printf("Failed to open file %s after creation\n", file_name);  // 추가
 		PANIC ("%s: open failed", file_name);
 
 	/* Do copy. */
@@ -124,6 +126,8 @@ fsutil_put (char **argv) {
 	/* Finish up. */
 	file_close (dst);
 	free (buffer);
+
+	//printf("File '%s' successfully put into the file system.\n", file_name);  // 추가
 }
 
 /* Copies file FILE_NAME from the file system to the scratch disk.
@@ -139,6 +143,7 @@ fsutil_put (char **argv) {
  * fsutil_put(), so all `put's should precede all `get's. */
 void
 fsutil_get (char **argv) {
+	//printf("fsutil_get called with filename: %s\n", argv[1]); //디버깅용
 	static disk_sector_t sector = 0;
 
 	const char *file_name = argv[1];

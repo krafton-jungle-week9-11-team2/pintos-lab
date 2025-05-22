@@ -15,15 +15,16 @@ Executing 'lg-seq-random':
 (lg-seq-random) begin
 (lg-seq-random) create "nibble"
 (lg-seq-random) open "nibble"
-(lg-seq-random) open "nibble": FAILED
+(lg-seq-random) writing "nibble"
+(lg-seq-random) write 753 bytes at offset 0 in "nibble" failed: FAILED
 lg-seq-random: exit(1)
 Execution of 'lg-seq-random' complete.
-Timer: 356 ticks
-Thread: 327 idle ticks, 25 kernel ticks, 4 user ticks
+Timer: 362 ticks
+Thread: 325 idle ticks, 30 kernel ticks, 7 user ticks
 hd0:0: 0 reads, 0 writes
-hd0:1: 103 reads, 402 writes
+hd0:1: 107 reads, 402 writes
 hd1:0: 107 reads, 0 writes
-Console: 955 characters output
+Console: 1021 characters output
 Keyboard: 0 keys pressed
 Exception: 0 page faults
 Powering off...

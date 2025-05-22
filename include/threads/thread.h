@@ -1,11 +1,21 @@
 #ifndef THREADS_THREAD_H
 #define THREADS_THREAD_H
 
+//for system call
+#define FDT_PAGES 2
+//파일 디스크립터 테이블에 할당할 페이지 수 (3페이지)
+#define FDCOUNT_LIMIT FDT_PAGES*(1 << 6)
+
+//파일 디스크립터 최대 개수 제한
+//1페이지는 4KB(4096바이트) % 8byte = 512 (2^9)
+//64비트 시스템에서 포인터 크기가 8바이트,한 페이지에 
+
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
 
 #include "threads/interrupt.h"
+#include "filesys/file.h"
 #ifdef VM
 #include "vm/vm.h"
 #endif
@@ -95,10 +105,13 @@ struct thread {
 
 	/* Shared between thread.c and synch.c. */
 	struct list_elem elem;              /* List element. */
+    
+	
+
 
 #ifdef USERPROG
 	/* Owned by userprog/process.c. */
-	uint64_t pml4 *pml4;                     /* Page map level 4 */
+	uint64_t *pml4;                     /* Page map level 4 */
 #endif
 #ifdef VM
 	/* Table for whole virtual memory owned by thread. */
@@ -119,6 +132,24 @@ struct thread {
     struct list donations;
     struct list_elem donation_elem;
 	/*-- Priority donation 과제 --*/
+
+    /*
+	================================
+	 Project2 - user program 과제 
+	================================
+	*/
+    struct file *runn_file;   //현재 스레드의 running file(파일 열고 닫기)
+
+
+	//fd 관련해서 추가해준 변수 
+	struct file **fd_table;
+	int next_fd; //fd 테이블에 one spot 인덱스
+	int exit_status; //프로그램이 정상적으로 종료되었는지 확인 
+
+
+
+
+
 };
 
 /* If false (default), use round-robin scheduler.
@@ -154,6 +185,7 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+
 
 void do_iret (struct intr_frame *tf);
 

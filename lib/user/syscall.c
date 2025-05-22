@@ -1,6 +1,7 @@
 #include <syscall.h>
 #include <stdint.h>
 #include "../syscall-nr.h"
+#include <stdbool.h>
 
 /*
 =======================================================
