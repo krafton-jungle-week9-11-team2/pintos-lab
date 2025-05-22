@@ -22,6 +22,7 @@
 #include "vm/vm.h"
 #endif
 void argument_stack(char **parse, int count, void **rsp);
+struct list all_list;
 
 static void process_cleanup(void);
 static bool load(const char *file_name, struct intr_frame *if_);
@@ -62,6 +63,7 @@ tid_t process_create_initd(const char *file_name)
 		palloc_free_page(fn_copy);
 	return tid;
 }
+// wait 5/21 추가
 
 /* A thread function that launches first user process. */
 static void
@@ -72,6 +74,7 @@ initd(void *f_name)
 #endif
 
 	process_init();
+	struct thread *cur = thread_current();
 
 	if (process_exec(f_name) < 0)
 		PANIC("Fail to launch initd\n");
@@ -272,17 +275,46 @@ int process_exec(void *f_name)
  *
  * This function will be implemented in problem 2-2.  For now, it
  * does nothing. */
-int process_wait(tid_t child_tid UNUSED)
+// 자식 리스트에서 tid에 해당하는 thread 구조체 포인터를 찾아줌
+struct thread *get_child_with_pid(tid_t pid)
 {
-	timer_sleep(2000);
+	struct thread *cur = thread_current();
+	struct list_elem *e;
 
-	return -1;
+	for (e = list_begin(&cur->child_list); e != list_end(&cur->child_list); e = list_next(e))
+	{
+		struct thread *child = list_entry(e, struct thread, child_elem);
+		if (child->tid == pid)
+		{
+			return child;
+		}
+	}
+	return NULL;
+}
+
+int process_wait(tid_t child_tid)
+{
+	struct thread *child = get_child_with_pid(child_tid);
+
+	if (child == NULL || child->waited)
+		return -1;
+
+	child->waited = true;
+	sema_down(&child->wait_sema);
+
+	int status = child->exit_status;
+	list_remove(&child->child_elem);
+	sema_up(&child->free_sema);
+
+	return status;
 }
 
 /* Exit the process. This function is called by thread_exit (). */
 void process_exit(void)
 {
 	struct thread *curr = thread_current();
+	sema_up(&thread_current()->wait_sema);	 // 부모 깨우기
+	sema_down(&thread_current()->free_sema); // 부모가 제거 완료할 때까지 기다림
 	/* TODO: Your code goes here.
 	 * TODO: Implement process termination message (see
 	 * TODO: project2/process_termination.html).

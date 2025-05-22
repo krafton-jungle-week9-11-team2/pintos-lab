@@ -108,6 +108,7 @@ struct thread
 	struct list_elem elem; /* List element. */
 	struct file *fdt[128]; // 최대 128개의 열린 파일
 #ifdef USERPROG
+
 	/*-- 부모 자식 관련 list와 세마포어 epic1 --*/
 	struct list child_list;			 // 자식 프로세스 리스트
 	struct list_elem child_elem; // 부모의 자식 리스트에서 나를 가리키는 링크
@@ -116,6 +117,7 @@ struct thread
 	/* Owned by userprog/process.c. */
 	uint64_t *pml4; /* Page map level 4 */
 	bool is_initd;	// 이 스레드(프로세스)가 init 프로세스인지를 알려주는 bool 멤버
+	struct list_elem allelem;
 #endif
 #ifdef VM
 	/* Table for whole virtual memory owned by thread. */
