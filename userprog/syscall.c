@@ -228,42 +228,39 @@ int process_add_file(struct file *file){
 
      struct thread *curr =thread_current();
      struct file **fdt = curr ->fd_table;
+     //현재 스레드가 갖고 있는 fd_table (파일 포인터 배열)
 
-
+     //curr->next_fd :다음에 사용할 수 있는(비어있는) fd 번호 후보
 	while(curr->next_fd < FDCOUNT_LIMIT && fdt[curr->next_fd] )
      {
           curr->next_fd++;
+          //다음 fd 번호 후보 증가시키면서 빈 번호(자리) 탐색 
      }
 
      if(curr->next_fd >= FDCOUNT_LIMIT)
-        return -1;
+        return -1; //자리 없음 
 
-     /*
-     thread 멤버 중 하나인 
-     **fd_table을 가리키기 위한 포인터 **fdt
-     */
-
-
-     /*
-     fd의 위치가 제한 범위를 넘지 않고, 
-     현재 fd_idx 위치에 파일이 이미 있으면 다음 슬롯으로 이동
-     */
-     fdt[curr->next_fd] = file;
-     return curr->next_fd;
+     
+     fdt[curr->next_fd] = file; //빈 슬록에 새 파일 포인터 할당
+     return curr->next_fd; //새로 할당된 fd 번호 리턴 
     
 }
 
 
 /*
 ======================================
+[open]
 
+ 반환값이 fd(파일 디스크립터)
+  => 파일 식별하는 숫자
 
+  파일 디스크립터는 process_add_file()을 
+  통해 현재 프로세스의 fd_table에 저장됨
+  
 ======================================
 */
 
 int open(const char *file) {
-
-    //struct thread *cur = thread_current();
 
     check_address(file);
 
@@ -271,40 +268,63 @@ int open(const char *file) {
     //open 해준 파일 지정해주는 변수
 
     if(open_file == NULL){
-       //printf("filesys_open failed for %s\n", file); //추가-디버깅
+       
        return -1;
     }
-//     else{
-//      printf("filesys_open succeeded for file: %s\n", file);  // 추가
-//     }
 
     int fd=process_add_file(open_file);
     //파일을 열면 fdt에 추가해줘야됨 
 
-    /*
-    
-    새로 구현해줘야 하는 함수
-
-    int add_file_to_fdt(struct file *file)
-    
-    */
+   
     
     //fd table 가득 찼다면 파일 닫아주기 ?
     if(fd == -1){
        file_close(open_file);
-       //printf("process_add_file failed, fd full or error.\n");  // 추가
+       
     }
-//     else{
-//       printf("File descriptor allocated: %d\n", fd);  // 추가
-//     }
+
     return fd;
 
 }
 
 
-//파일 닫기
+/*
+====================================
+[close]      
+     파일 fd를 닫는 시스템 콜
+
+-프로세스가 종료되거나 중지될 때 
+
+-모든 열린 파일 디스크립터는 자동으로
+ 이 함수를 호출하여 닫아야한다. 
+
+====================================
+*/
+
+
 void close(int fd) {
-    return;
+
+     struct file *file_fd =process_get_file(fd);
+     if(file_fd == NULL)
+     {
+          return -1;
+     }
+
+     file_close(file_fd); //파일 닫기(내부에서 메모리 해제 포함)
+     remove_fd(fd);//우리가 구현해줘야됨 
+
+     return 0;
+
+}
+
+void remove_fd(int fd){
+     struct thread *cur =thread_current();
+
+     if(fd<2 || fd >= FDCOUNT_LIMIT)
+       return; //유효하지 않은 fd면 무시
+     
+     cur->fd_table[fd]=NULL;
+     //0인지 NULL인지 . . .
 }
 
 
@@ -353,6 +373,37 @@ static struct file *process_get_file(int fd){
      return cur->fd_table[fd];
 }
 
+/*
+======================================================
+-fd로부터 열린 파일의 크기를 읽고 버퍼에 담는다.
+-실제로 읽은 파일의 크기를 반환하며 
+-실패시에는 -1 반환
+
+-fd가 0이면 input_getc() 를 이용해서 
+ => 키보드 입력을 읽어온다.
+
+-주어진 파일 디스크립터 번호와 일치하는 파일 디스크립터를
+ 찾아 그 파일을 읽어들이기!
+======================================================
+*/
+int read(int fd, void *buffer, unsigned length) {
+     check_address(buffer); //주소 유효성 검사
+
+     if(fd == 0){
+          return input_getc();
+          //fd =0 이면 키보드에서 받기
+     }
+
+     //fd !=0 일 때
+     struct file *f =process_get_file(fd);
+     if (f == NULL){
+          return 0;
+     }
+
+     return file_read(f,buffer,length);
+    
+}
+
 
 
 /*
@@ -398,12 +449,6 @@ NOT_REACHED();
 return 0;
 }
 
-
-
-// 임시 버전: 파일로부터 읽기
-int read(int fd, void *buffer, unsigned size) {
-    return -1;
-}
 
 // 임시 버전: seek (커서 이동)
 void seek(int fd, unsigned position) {

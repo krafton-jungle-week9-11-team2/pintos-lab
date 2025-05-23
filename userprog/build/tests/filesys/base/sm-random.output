@@ -19,8 +19,8 @@ Executing 'sm-random':
 (sm-random) write 13 bytes at offset 182 failed: FAILED
 sm-random: exit(1)
 Execution of 'sm-random' complete.
-Timer: 360 ticks
-Thread: 333 idle ticks, 26 kernel ticks, 1 user ticks
+Timer: 357 ticks
+Thread: 330 idle ticks, 25 kernel ticks, 2 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 109 reads, 266 writes
 hd1:0: 111 reads, 0 writes

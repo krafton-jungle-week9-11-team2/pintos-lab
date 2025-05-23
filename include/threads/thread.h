@@ -142,7 +142,7 @@ struct thread {
 
 
 	//fd 관련해서 추가해준 변수 
-	struct file **fd_table;
+	struct file **fd_table; // struct file 포인터
 	int next_fd; //fd 테이블에 one spot 인덱스
 	int exit_status; //프로그램이 정상적으로 종료되었는지 확인 
 

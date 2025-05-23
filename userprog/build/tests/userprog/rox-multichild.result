@@ -1,2 +1,2 @@
 FAIL
-run: read "child-rox": FAILED
+run: write "child-rox": FAILED

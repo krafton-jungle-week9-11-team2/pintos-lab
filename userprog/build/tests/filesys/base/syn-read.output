@@ -20,8 +20,8 @@ Executing 'syn-read':
 (syn-read) write "data": FAILED
 syn-read: exit(1)
 Execution of 'syn-read' complete.
-Timer: 365 ticks
-Thread: 331 idle ticks, 30 kernel ticks, 4 user ticks
+Timer: 361 ticks
+Thread: 329 idle ticks, 29 kernel ticks, 3 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 137 reads, 506 writes
 hd1:0: 227 reads, 0 writes
