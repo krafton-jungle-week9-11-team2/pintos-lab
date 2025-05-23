@@ -100,22 +100,24 @@ struct thread
 	enum thread_status status; /* Thread state. */
 	char name[16];						 /* Name (for debugging purposes). */
 	int priority;							 /* Priority. */
-	struct file **fd_table;
+	struct list_elem elem;
+
 	int fd_idx;
-	// struct file **fdt; // 파일 디스크립터 테이블 (배열 형태)
-	int next_fd; // 다음으로 열릴 fd
-	/* Shared between thread.c and synch.c. */
-	struct list_elem elem; /* List element. */
-	struct file *fdt[128]; // 최대 128개의 열린 파일
+	int next_fd;
+	struct file **fd_table;
+	struct semaphore load_sema;
+	struct semaphore wait_sema; // 자식 종료 대기용
+	struct intr_frame parent_if;
+
+	struct file *running;
+
+	struct semaphore exit_sema;
+	struct list child_list;
+	struct list_elem child_elem;
+	int exit_status;
+	bool is_initd;
 #ifdef USERPROG
-	/*-- 부모 자식 관련 list와 세마포어 epic1 --*/
-	struct list child_list;			 // 자식 프로세스 리스트
-	struct list_elem child_elem; // 부모의 자식 리스트에서 나를 가리키는 링크
-	struct semaphore wait_sema;	 // 자식 종료 대기용 세마포어
-	int exit_status;						 // 자식의 종료 코드
-	/* Owned by userprog/process.c. */
-	uint64_t *pml4; /* Page map level 4 */
-	bool is_initd;	// 이 스레드(프로세스)가 init 프로세스인지를 알려주는 bool 멤버
+	uint64_t *pml4;
 #endif
 #ifdef VM
 	/* Table for whole virtual memory owned by thread. */
