@@ -270,7 +270,7 @@ void argument_stack(char **parse, int count, void **rsp) // 주소를 전달받�
 /* Switch the current execution context to the f_name.
  * Returns -1 on fail. */
 int process_exec(void *f_name)
-{ // 인자: 실행하려는 이진 파일의 이름
+{
 	char *file_name = f_name;
 	bool success;
 
@@ -285,43 +285,35 @@ int process_exec(void *f_name)
 	/* We first kill the current context */
 	process_cleanup();
 
-	// /* 🎯 fd_table 초기화 (이 위치!) */
-	// struct thread *cur = thread_current();
-	// cur->fd_table = palloc_get_page(PAL_ZERO);
-	// if (cur->fd_table == NULL)
-	// 	exit(-1); // 메모리 부족 시 종료
-
-	// cur->fd_idx = 2; // 0번 stdin, 1번 stdout 예약
-
-	// Argument Passing ~
+	/* Argument Parsing 먼저 */
 	char *parse[64];
 	char *token, *save_ptr;
 	int count = 0;
-	for (token = strtok_r(file_name, " ", &save_ptr); token != NULL; token = strtok_r(NULL, " ", &save_ptr))
+	for (token = strtok_r(file_name, " ", &save_ptr); token != NULL;
+			 token = strtok_r(NULL, " ", &save_ptr))
+	{
 		parse[count++] = token;
-	// ~ Argument Passing
+	}
 
-	/* And then load the binary */
+	/* Load ELF binary */
 	success = load(file_name, &_if);
-	// 이진 파일을 디스크에서 메모리로 로드한다.
-	// 로드된 후 실행할 메인 함수의 시작 주소 필드 초기화 (if_.rip)
-	// user stack의 top 포인터 초기화 (if_.rsp)
-	// 위 과정을 성공하면 실행을 계속하고, 실패하면 스레드가 종료된다.
-
-	// Argument Passing ~
-	argument_stack(parse, count, &_if.rsp); // 함수 내부에서 parse와 rsp의 값을 직접 변경하기 위해 주소 전달
-	_if.R.rdi = count;
-	_if.R.rsi = (char *)_if.rsp + 8;
-
-	// hex_dump(_if.rsp, _if.rsp, USER_STACK - (uint64_t)_if.rsp, true); // user stack을 16진수로 프린트
-	// ~ Argument Passing
 
 	/* If load failed, quit. */
-	palloc_free_page(file_name);
 	if (!success)
+	{
+		palloc_free_page(file_name);
 		return -1;
+	}
 
-	/* Start switched process. */
+	/* Argument Passing */
+	argument_stack(parse, count, &_if.rsp);
+	_if.R.rdi = count;
+	_if.R.rsi = (uint64_t)_if.rsp + 8;
+
+	/* Free file name page (복사본) */
+	palloc_free_page(file_name);
+
+	/* Start switched process */
 	do_iret(&_if);
 	NOT_REACHED();
 }

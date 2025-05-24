@@ -18,8 +18,8 @@ Executing 'lg-random':
 (lg-random) write "bazzle" in random order
 lg-random: exit(-1)
 Execution of 'lg-random' complete.
-Timer: 139 ticks
-Thread: 55 idle ticks, 59 kernel ticks, 25 user ticks
+Timer: 122 ticks
+Thread: 45 idle ticks, 56 kernel ticks, 22 user ticks
 hd0:0: 0 reads, 0 writes
 hd0:1: 109 reads, 410 writes
 hd1:0: 110 reads, 0 writes
