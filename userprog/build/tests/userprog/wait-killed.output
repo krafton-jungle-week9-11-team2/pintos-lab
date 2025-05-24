@@ -4,8 +4,8 @@ Kernel command line: -q -f put wait-killed put child-bad run wait-killed
 Pintos booting with: 
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
-Calibrating timer...  32,716,800 loops/s.
-hd0:0: detected 313 sector (156 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+Calibrating timer...  29,440,000 loops/s.
+hd0:0: detected 321 sector (160 kB) disk, model "QEMU HARDDISK", serial "QM00001"
 hd0:1: detected 20,160 sector (9 MB) disk, model "QEMU HARDDISK", serial "QM00002"
 hd1:0: detected 205 sector (102 kB) disk, model "QEMU HARDDISK", serial "QM00003"
 Formatting file system...done.
@@ -14,14 +14,32 @@ Putting 'wait-killed' into the file system...
 Putting 'child-bad' into the file system...
 Executing 'wait-killed':
 (wait-killed) begin
-wait-killed: exit(-1)
-Execution of 'wait-killed' complete.
-Timer: 2111 ticks
-Thread: 2037 idle ticks, 66 kernel ticks, 10 user ticks
-hd0:0: 103 reads, 420 writes
-hd0:1: 0 reads, 0 writes
+(child-bad) begin
+load: pintos: open failed
+Page fault at 0xfffff: not present error writing page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=800421bd10
+ cr2=00000000000fffff error=               2
+rax 00000000000fffff rbx 0000000000000000 rcx 0000000000000001 rdx 0000000000000000
+rsp 0000008004240b80 rbp 0000008004240bc0 rsi 0000000000000001 rdi 0000008004252000
+rip 000000800421bd10 r8 0000008004240a5c  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000212 r12 000000800421d6e9 r13 0000800420823c00 r14 00008004240e2000
+r15 00000004227b0000 rflags 00000206
+es: 001b ds: 001b cs: 0008 ss: 0010
+Kernel PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x80042180e6 0x800421cddb 0x800421cf5a 0x80042090c9 0x80042094e7 0x800421bf2f 0x800421d2be 0x800421d848 0x800421cfcfPage fault at 0x4747ff80: not present error reading page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=8004215120
+ cr2=000000004747ff80 error=               0
+rax 000000004747ff80 rbx 0000000000000000 rcx 00000080040b8000 rdx 00000000000003d4
+rsp 0000008004240980 rbp 0000008004240990 rsi 000000000000b00f rdi 0000000000000000
+rip 0000008004215120 r8 0000008004240898  r9 000000800421b55f r10 0000000000000000
+r11 0000000000000212 r12 000000800421d6e9 r13 0000800420823c00 r14 00008004240e2000
+r15 00000004227b0000 rflags 00000002
+es: 0010 ds: 0010 cs: 0008 ss: 0010
+Kernel PANIC recursion at ../../userprog/exception.c:97 in kill().
+Timer: 151 ticks
+Thread: 76 idle ticks, 47 kernel ticks, 28 user ticks
+hd0:0: 0 reads, 0 writes
+hd0:1: 171 reads, 448 writes
 hd1:0: 205 reads, 0 writes
-Console: 903 characters output
-Keyboard: 0 keys pressed
-Exception: 0 page faults
-Powering off...
+Console: 2356 characters output
+Key

@@ -1,35 +1,13 @@
 FAIL
-Test output failed to match any acceptable form.
-
-Acceptable output:
-  (wait-killed) begin
-  (child-bad) begin
-  child-bad: exit(-1)
-  (wait-killed) wait(exec()) = -1
-  (wait-killed) end
-  wait-killed: exit(0)
-Differences in `diff -u' format:
-  (wait-killed) begin
-- (child-bad) begin
-- child-bad: exit(-1)
-- (wait-killed) wait(exec()) = -1
-- (wait-killed) end
-- wait-killed: exit(0)
-+ wait-killed: exit(-1)
-Acceptable output:
-  (wait-killed) begin
-  (child-bad) begin
-  load: pintos: open failed
-  child-bad: exit(-1)
-  (wait-killed) wait(exec()) = -1
-  (wait-killed) end
-  wait-killed: exit(0)
-Differences in `diff -u' format:
-  (wait-killed) begin
-- (child-bad) begin
-- load: pintos: open failed
-- child-bad: exit(-1)
-- (wait-killed) wait(exec()) = -1
-- (wait-killed) end
-- wait-killed: exit(0)
-+ wait-killed: exit(-1)
+Kernel panic in run: PANIC at ../../userprog/exception.c:97 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0x80042180e6 0x800421cddb 0x800421cf5a 0x80042090c9 0x80042094e7 0x800421bf2f 0x800421d2be 0x800421d848 0x800421cfcf
+Translation of call stack:
+0x00000080042180e6: debug_panic (lib/kernel/debug.c:32)
+0x000000800421cddb: kill (userprog/exception.c:103)
+0x000000800421cf5a: page_fault (userprog/exception.c:159 (discriminator 12))
+0x00000080042090c9: intr_handler (threads/interrupt.c:352)
+0x00000080042094e7: intr_entry (threads/intr-stubs.o:?)
+0x000000800421bf2f: process_exec (userprog/process.c:313)
+0x000000800421d2be: exec (userprog/syscall.c:119)
+0x000000800421d848: syscall_handler (userprog/syscall.c:285)
+0x000000800421cfcf: no_sti (userprog/syscall-entry.o:?)

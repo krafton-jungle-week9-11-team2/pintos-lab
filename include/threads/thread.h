@@ -30,7 +30,8 @@ typedef int tid_t;
 #define PRI_MAX 63		 /* Highest priority. */
 // 추가한 코드 5/20
 #define FDT_PAGES 3
-#define FDCOUNT_LIMIT FDT_PAGES * (1 << 9) // Limit fdIdx
+
+// #define FDCOUNT_LIMIT FDT_PAGES * (1 << 9) // Limit fdIdx
 
 #define FDCOUNT_LIMIT 128 // 최대 열 수 있는 파일 수 (임의 값)
 
@@ -100,22 +101,31 @@ struct thread
 	enum thread_status status; /* Thread state. */
 	char name[16];						 /* Name (for debugging purposes). */
 	int priority;							 /* Priority. */
-	struct file **fd_table;
-	int fd_idx;
-	// struct file **fdt; // 파일 디스크립터 테이블 (배열 형태)
-	int next_fd; // 다음으로 열릴 fd
+
 	/* Shared between thread.c and synch.c. */
 	struct list_elem elem; /* List element. */
-	struct file *fdt[128]; // 최대 128개의 열린 파일
+												 // struct file *fdt[128]; // 최대 128개의 열린 파일
+
 #ifdef USERPROG
+	int fd_idx;
+	int next_fd; // 다음으로 열릴 fd
+	struct file **fd_table;
+
+	struct list_elem allelem;
+	struct semaphore load_sema; // 추가
+
+	struct intr_frame parent_if; // exec 추가
+	struct semaphore exit_sema;	 // 추가 -> wait
+	struct semaphore wait_sema;	 // 추가 -> wait
+
 	/*-- 부모 자식 관련 list와 세마포어 epic1 --*/
 	struct list child_list;			 // 자식 프로세스 리스트
 	struct list_elem child_elem; // 부모의 자식 리스트에서 나를 가리키는 링크
-	struct semaphore wait_sema;	 // 자식 종료 대기용 세마포어
 	int exit_status;						 // 자식의 종료 코드
 	/* Owned by userprog/process.c. */
 	uint64_t *pml4; /* Page map level 4 */
 	bool is_initd;	// 이 스레드(프로세스)가 init 프로세스인지를 알려주는 bool 멤버
+	struct file *running;
 #endif
 #ifdef VM
 	/* Table for whole virtual memory owned by thread. */
@@ -154,6 +164,7 @@ tid_t thread_create(const char *name, int priority, thread_func *, void *);
 
 void thread_block(void);
 void thread_unblock(struct thread *);
+struct thread *get_thread_by_tid(tid_t tid); // project2추가
 
 struct thread *thread_current(void);
 tid_t thread_tid(void);

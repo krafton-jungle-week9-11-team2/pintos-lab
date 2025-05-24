@@ -21,7 +21,7 @@ static void do_format(void);
  * If FORMAT is true, reformats the file system. */
 void filesys_init(bool format)
 {
-	filesys_disk = disk_get(0, 0);
+	filesys_disk = disk_get(0, 1);
 	if (filesys_disk == NULL)
 		PANIC("hd0:1 (hdb) not present, file system initialization failed");
 	lock_init(&filesys_lock);
