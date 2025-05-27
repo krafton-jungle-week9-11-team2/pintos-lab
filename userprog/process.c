@@ -346,13 +346,13 @@ int process_exec (void *f_name) {
         return -1;
 	}
 
-    // Argument Passing ~
-    argument_stack(parse, count, &_if.rsp); // 함수 내부에서 parse와 rsp의 값을 직접 변경하기 위해 주소 전달
-    _if.R.rdi = count;
-    _if.R.rsi = (char *)_if.rsp + 8;
+    //  Project 2. User Programs의 Argument Passing ~
+    argument_stack(parse, count, &_if.rsp); // 함수 내부에서 parse와 rsp의 값을 직접 변경하기 위해 주소 전달.
+    _if.R.rdi = count; // 첫 번째 인자: argc, 즉 프로그램에 전달된 인자의 개수를 레지스터 rdi에 저장 (시스템 V AMD64 ABI 규약???).
+    _if.R.rsi = (char *)_if.rsp + 8; // 두 번째 인자: argv. 스택의 첫 8바이트는 NULL이고, 그 다음 주소가 argv[0]이므로, rsp + 8이 argv 배열의 시작 주소.
 
     // hex_dump(_if.rsp, _if.rsp, USER_STACK - (uint64_t)_if.rsp, true); // 디버그용. 유저 스택을 헥스 덤프로 출력.
-    // ~ Argument Passing
+    // ~  Project 2. User Programs의 Argument Passing
 
     /* Start switched process. */
     do_iret(&_if);

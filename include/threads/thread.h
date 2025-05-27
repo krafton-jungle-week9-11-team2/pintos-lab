@@ -136,11 +136,11 @@ struct thread {
     struct list child_list;        // 자신의 자식 목록
     struct list_elem child_elem;   // 부모의 child_list에 들어갈 때 사용하는 노드
 
-	struct semaphore load_sema; // 동기화 대기용 세마포어
-	struct semaphore exit_sema;
-	struct semaphore wait_sema;
-
-	struct file *running; // 현재 실행중인 파일
+	struct semaphore load_sema; // 동기화 대기용 세마포어. 자식 프로세스가 load() 완료 후 부모에게 알리기 위함. fork() 직후 자식이 실행을 성공적으로 시작했는지 부모가 알기 위해 사용됨.
+	struct semaphore exit_sema; // 자식 프로세스가 종료되었음을 부모가 확인할 수 있도록 하기 위한 세마포어
+	struct semaphore wait_sema; // 부모가 자식의 종료를 기다릴 수 있도록 하기 위한 세마포어
+ 
+	struct file *running; // 현재 실행 중인 파일
 	/*-- Project 2. User Programs 과제 --*/
 };
 
