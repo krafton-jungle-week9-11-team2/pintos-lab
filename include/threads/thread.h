@@ -105,6 +105,7 @@ struct thread
 	/* Shared between thread.c and synch.c. */
 	struct list_elem elem; /* List element. */
 												 // struct file *fdt[128]; // 최대 128개의 열린 파일
+	struct file *running_file;
 
 #ifdef USERPROG
 	int fd_idx;
@@ -125,7 +126,6 @@ struct thread
 	/* Owned by userprog/process.c. */
 	uint64_t *pml4; /* Page map level 4 */
 	bool is_initd;	// 이 스레드(프로세스)가 init 프로세스인지를 알려주는 bool 멤버
-	struct file *running;
 #endif
 #ifdef VM
 	/* Table for whole virtual memory owned by thread. */

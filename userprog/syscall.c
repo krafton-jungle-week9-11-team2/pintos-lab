@@ -11,6 +11,7 @@
 #include "userprog/process.h"
 #include <syscall-nr.h>
 #include "filesys/filesys.h"
+#include "filesys/file.h"
 
 #include "threads/palloc.h"
 #include "threads/synch.h" // 🔥 struct lock 정의 들어 있음
@@ -251,6 +252,29 @@ int read(int fd, void *buffer, unsigned size)
 
 	return read_result;
 }
+void seek(int fd, unsigned position)
+{
+	if (fd < 2)
+		return; // 0: stdin, 1: stdout 은 seek 금지
+
+	struct file *seek_file = find_file_by_fd(fd);
+	if (seek_file == NULL)
+		return;
+
+	file_seek(seek_file, position); // ✅ file->pos 설정은 이 함수에 맡김
+}
+
+unsigned tell(int fd)
+{
+	if (fd < 2)
+		return 0; // stdout/stderr에 대해선 0 리턴
+
+	struct file *tell_file = find_file_by_fd(fd);
+	if (tell_file == NULL)
+		return 0;
+
+	return file_tell(tell_file); // ✅ 이미 구현된 함수 호출
+}
 void syscall_handler(struct intr_frame *f UNUSED)
 {
 	uint64_t number = f->R.rax;
@@ -284,6 +308,9 @@ void syscall_handler(struct intr_frame *f UNUSED)
 	case SYS_EXEC:
 		f->R.rax = exec(f->R.rdi);
 		break;
+	case SYS_TELL:
+		f->R.rax = tell(f->R.rdi);
+		break;
 	case SYS_CLOSE:
 		close(f->R.rdi);
 		break;
@@ -297,6 +324,9 @@ void syscall_handler(struct intr_frame *f UNUSED)
 		break;
 	case SYS_FORK:
 		f->R.rax = fork(f->R.rdi, f);
+		break;
+	case SYS_SEEK:
+		seek(f->R.rdi, f->R.rsi);
 		break;
 
 	default:

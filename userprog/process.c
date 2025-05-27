@@ -9,7 +9,7 @@
 #include "userprog/tss.h"
 #include "filesys/directory.h"
 #include "filesys/file.h"
-#include "filesys/filesys.h"
+#include "filesys/filesys.h" file.h
 #include "threads/flags.h"
 #include "threads/init.h"
 #include "threads/interrupt.h"
@@ -18,8 +18,11 @@
 #include "threads/mmu.h"
 #include "threads/vaddr.h"
 #include "intrinsic.h"
+
+#include "filesys/inode.h"
 #ifdef VM
 #include "vm/vm.h"
+
 #endif
 void argument_stack(char **parse, int count, void **rsp);
 
@@ -188,7 +191,10 @@ __do_fork(void *aux)
 	/* 2. Duplicate PT */
 	current->pml4 = pml4_create();
 	if (current->pml4 == NULL)
+	{
+
 		goto error;
+	}
 
 	process_activate(current);
 #ifdef VM
@@ -227,18 +233,21 @@ __do_fork(void *aux)
 	if (succ)
 		do_iret(&if_);
 error:
-	sema_up(&current->load_sema);
+	// sema_up(&current->load_sema);
+	// thread_current()->exit_status = -1;
 	exit(TID_ERROR);
 }
 
 void argument_stack(char **parse, int count, void **rsp) // 주소를 전달받았으므로 이중 포인터 사용
 {
+
 	// 프로그램 이름, 인자 문자열 push
 	for (int i = count - 1; i > -1; i--)
 	{
 		for (int j = strlen(parse[i]); j > -1; j--)
 		{
-			(*rsp)--;											// 스택 주소 감소
+			(*rsp)--; // 스택 주소 감소
+
 			**(char **)rsp = parse[i][j]; // 주소에 문자 저장
 		}
 		parse[i] = *(char **)rsp; // parse[i]에 현재 rsp의 값 저장해둠(지금 저장한 인자가 시작하는 주소값)
@@ -246,9 +255,11 @@ void argument_stack(char **parse, int count, void **rsp) // 주소를 전달받�
 
 	// 정렬 패딩 push
 	int padding = (int)*rsp % 8;
+
 	for (int i = 0; i < padding; i++)
 	{
 		(*rsp)--;
+
 		**(uint8_t **)rsp = 0; // rsp 직전까지 값 채움
 	}
 
@@ -273,47 +284,40 @@ int process_exec(void *f_name)
 {
 	char *file_name = f_name;
 	bool success;
+	char cp_file_name[256];
 
-	/* We cannot use the intr_frame in the thread structure.
-	 * This is because when current thread rescheduled,
-	 * it stores the execution information to the member. */
+	memcpy(cp_file_name, file_name, strlen(file_name) + 1);
+
 	struct intr_frame _if;
 	_if.ds = _if.es = _if.ss = SEL_UDSEG;
 	_if.cs = SEL_UCSEG;
 	_if.eflags = FLAG_IF | FLAG_MBS;
 
-	/* We first kill the current context */
 	process_cleanup();
 
-	/* Argument Parsing 먼저 */
+	/* Argument Parsing */
 	char *parse[64];
 	char *token, *save_ptr;
 	int count = 0;
-	for (token = strtok_r(file_name, " ", &save_ptr); token != NULL;
+	for (token = strtok_r(cp_file_name, " ", &save_ptr); token != NULL;
 			 token = strtok_r(NULL, " ", &save_ptr))
 	{
 		parse[count++] = token;
 	}
 
-	/* Load ELF binary */
-	success = load(file_name, &_if);
+	/* ✅ 여기서 다시 filesys_open 하지 마!! 이미 load() 내부에서 열고 deny_write 했어 */
 
-	/* If load failed, quit. */
+	success = load(parse[0], &_if);
+
 	if (!success)
-	{
-		palloc_free_page(file_name);
 		return -1;
-	}
 
-	/* Argument Passing */
 	argument_stack(parse, count, &_if.rsp);
+
 	_if.R.rdi = count;
 	_if.R.rsi = (uint64_t)_if.rsp + 8;
+	// palloc_free_page(cp_file_name);
 
-	/* Free file name page (복사본) */
-	palloc_free_page(file_name);
-
-	/* Start switched process */
 	do_iret(&_if);
 	NOT_REACHED();
 }
@@ -329,18 +333,23 @@ int process_exec(void *f_name)
  * does nothing. */
 int process_wait(tid_t child_tid UNUSED)
 {
+	struct thread *cur = thread_current();
+	if (list_empty(&cur->child_list))
+		return -1;
+
 	struct thread *child = get_child_process(child_tid);
 	if (child == NULL) // 1) 자식이 아니면 -1을 반환한다.
 		return -1;
 
 	// 2) 자식이 종료될 때까지 대기한다. (process_exit에서 자식이 종료될 때 sema_up 해줄 것이다.)
 	sema_down(&child->wait_sema);
+	int status = child->exit_status;
 	// 3) 자식이 종료됨을 알리는 `wait_sema` signal을 받으면 현재 스레드(부모)의 자식 리스트에서 제거한다.
 	list_remove(&child->child_elem);
 	// 4) 자식이 완전히 종료되고 스케줄링이 이어질 수 있도록 자식에게 signal을 보낸다.
 	sema_up(&child->exit_sema);
 
-	return child->exit_status; // 5) 자식의 exit_status를 반환한다.
+	return status; // 5) 자식의 exit_status를 반환한다.
 }
 
 /* Exit the process. This function is called by thread_exit (). */
@@ -348,7 +357,7 @@ void process_exit(void)
 {
 	struct thread *curr = thread_current();
 
-	// FD 정리
+	/* 1. 파일 디스크립터 테이블 정리 */
 	for (int i = 2; i < FDCOUNT_LIMIT; i++)
 	{
 		if (curr->fd_table[i] != NULL)
@@ -357,22 +366,24 @@ void process_exit(void)
 			curr->fd_table[i] = NULL;
 		}
 	}
+	palloc_free_page(curr->fd_table);
+	curr->fd_table = NULL;
 
-	// ✅ 실행 중인 파일 close 전 처리
-	if (curr->running != NULL)
+	/* ✅ 4. 이제 실행 중인 파일 닫기 */
+	if (curr->running_file != NULL)
 	{
-		file_allow_write(curr->running); // ✅ write 허용
-		file_close(curr->running);
-		curr->running = NULL;
+		file_allow_write(curr->running_file);
+		file_close(curr->running_file);
+		curr->running_file = NULL;
 	}
 
-	// FD table 해제
-	palloc_free_page(curr->fd_table);
-
-	// wait() 관련 세마포어 동기화
+	/* 2. 자식 프로세스를 기다리는 부모에게 종료 통보 */
 	sema_up(&curr->wait_sema);
+
+	/* 3. 부모가 종료 정리할 때까지 대기 */
 	sema_down(&curr->exit_sema);
 
+	/* 5. 나머지 자원 정리 */
 	process_cleanup();
 }
 
@@ -496,14 +507,28 @@ load(const char *file_name, struct intr_frame *if_)
 	if (t->pml4 == NULL)
 		goto done;
 	process_activate(thread_current());
+	// char file_name_copy[NAME_MAX + 1];
 
+	// strlcpy(file_name_copy, file_name, sizeof file_name_copy);
+	// char *save_ptr;
+	// char *program_name = strtok_r(file_name_copy, " ", &save_ptr);
+	char file_name_copy[256];
+	strlcpy(file_name_copy, file_name, sizeof file_name_copy);
+	char *save_ptr;
+	char *program_name = strtok_r(file_name_copy, " ", &save_ptr);
+
+	file = filesys_open(program_name); // ✅ 반드시 자른 문자열로 열어야 함
 	/* Open executable file. */
-	file = filesys_open(file_name);
+
 	if (file == NULL)
 	{
 		printf("load: %s: open failed\n", file_name);
 		goto done;
 	}
+
+	file_deny_write(file);
+
+	t->running_file = file;
 
 	/* Read and verify executable header. */
 	if (file_read(file, &ehdr, sizeof ehdr) != sizeof ehdr || memcmp(ehdr.e_ident, "\177ELF\2\1\1", 7) || ehdr.e_type != 2 || ehdr.e_machine != 0x3E // amd64
@@ -563,19 +588,24 @@ load(const char *file_name, struct intr_frame *if_)
 				}
 				if (!load_segment(file, file_page, (void *)mem_page,
 													read_bytes, zero_bytes, writable))
+				{
+
 					goto done;
+				}
 			}
 			else
 				goto done;
 			break;
 		}
 	}
-	// project2 코드 추가
-	t->running = file;
-	file_deny_write(file);
+
 	/* Set up stack. */
+
 	if (!setup_stack(if_))
+	{
+
 		goto done;
+	}
 
 	/* Start address. */
 	if_->rip = ehdr.e_entry;
@@ -586,6 +616,8 @@ load(const char *file_name, struct intr_frame *if_)
 	success = true;
 
 done:
+	// if (!success && file != NULL)
+	// 	file_close(file); // load 실패 시 닫기
 	/* We arrive here whether the load is successful or not. */
 	// file_close(file);
 	return success;
@@ -708,19 +740,23 @@ load_segment(struct file *file, off_t ofs, uint8_t *upage,
 static bool
 setup_stack(struct intr_frame *if_)
 {
-	uint8_t *kpage;
-	bool success = false;
-
-	kpage = palloc_get_page(PAL_USER | PAL_ZERO);
-	if (kpage != NULL)
+	uint8_t *kpage = palloc_get_page(PAL_USER | PAL_ZERO);
+	if (kpage == NULL)
 	{
-		success = install_page(((uint8_t *)USER_STACK) - PGSIZE, kpage, true);
-		if (success)
-			if_->rsp = USER_STACK;
-		else
-			palloc_free_page(kpage);
+
+		return false;
 	}
-	return success;
+
+	bool success = install_page(((uint8_t *)USER_STACK) - PGSIZE, kpage, true);
+	if (!success)
+	{
+
+		palloc_free_page(kpage);
+		return false;
+	}
+
+	if_->rsp = USER_STACK;
+	return true;
 }
 
 /* Adds a mapping from user virtual address UPAGE to kernel
